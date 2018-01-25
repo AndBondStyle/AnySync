@@ -1,0 +1,15 @@
+# BASE DEPENDENCIES
+
+django==2.0.1
+django-environ==0.4.4
+django-storages==1.6.5
+django-templated-email==2.2.0
+django-crispy-forms==1.7.0
+channels==1.1.8
+psycopg2==2.7.3.2
+pillow==5.0.0
+argon2-cffi==18.1.0
+awesome-slugify==1.6.5
+boto3==1.5.14
+pytube==8.0.2
+requests==2.18.4

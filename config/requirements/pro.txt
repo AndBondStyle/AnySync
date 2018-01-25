@@ -1,0 +1,7 @@
+# PRODUCTION DEPENDENCIES
+
+-r base.txt
+
+raven==6.3.0
+django-redis==4.8.0
+asgi_redis==1.4.3
