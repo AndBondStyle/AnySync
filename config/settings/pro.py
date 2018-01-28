@@ -1,12 +1,18 @@
+from . import ENV
+
+# DEFAULTS
+
+ENV.ENVIRON.setdefault('DJANGO_DEBUG', True)
+ENV.ENVIRON.setdefault('DJANGO_ADMIN_URL', '^admin/')
+ENV.ENVIRON.setdefault('DJANGO_SECRET_KEY', 'super-secret-key')
+ENV.ENVIRON.setdefault('DJANGO_ALLOWED_HOSTS', '*')
+ENV.ENVIRON.setdefault('SITE_URL', 'http://localhost')
+
+ENV.ENVIRON.setdefault('DATABASE_URL', 'sqlite:///sqlite.db')
+ENV.ENVIRON.setdefault('DJANGO_USE_AWS', False)
+ENV.ENVIRON.setdefault('EMAIL_URL', 'filemail://')
+
 from .base import *
-
-# GENERAL
-
-DEBUG = ENV.bool('DJANGO_DEBUG', False)
-ADMIN_URL = ENV('DJANGO_ADMIN_URL')
-SECRET_KEY = ENV('DJANGO_SECRET_KEY')
-ALLOWED_HOSTS = ENV.list('DJANGO_ALLOWED_HOSTS')
-SITE_URL = ENV('SITE_URL', default=ALLOWED_HOSTS[0])
 
 # EXTRA APPS & MIDDLEWARE
 
@@ -30,7 +36,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 # CACHING
 
-REDIS_LOCATION = ENV('REDIS_URL') + '/0'
+REDIS_LOCATION = ENV.str('REDIS_URL') + '/0'
 
 CACHES = {
     'default': {
@@ -58,7 +64,10 @@ CHANNEL_LAYERS = {
 # RAVEN & SENTRY
 
 SENTRY_CLIENT = 'raven.contrib.django.raven_compat.DjangoClient'
-RAVEN_CONFIG = {'DSN': ENV('SENTRY_DSN')}
+RAVEN_CONFIG = {
+    'dsn': ENV.str('SENTRY_DSN'),
+    'release': VERSION,
+}
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -69,6 +78,9 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
         },
     },
     'handlers': {
@@ -96,11 +108,6 @@ LOGGING = {
         'sentry.errors': {
             'level': 'DEBUG',
             'handlers': ['console'],
-            'propagate': False,
-        },
-        'django.security.DisallowedHost': {
-            'level': 'ERROR',
-            'handlers': ['console', 'sentry'],
             'propagate': False,
         },
     },

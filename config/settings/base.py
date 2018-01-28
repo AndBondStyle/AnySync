@@ -3,18 +3,28 @@ from environ import Path
 
 # GENERAL
 
+if ENV.str('ENV_FILE'): ENV.read_env(ENV.str('ENV_FILE'))
+
 ROOT_DIR = Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('anysync')
-TEMP_DIR = APPS_DIR.path('temp')
+TEMP_DIR = ROOT_DIR.path('temp')
 ROOT_URLCONF = 'config.urls'
+
+DEBUG = ENV.bool('DJANGO_DEBUG')
+ADMIN_URL = ENV.str('DJANGO_ADMIN_URL')
+SECRET_KEY = ENV.str('DJANGO_SECRET_KEY')
+ALLOWED_HOSTS = ENV.list('DJANGO_ALLOWED_HOSTS')
+SITE_URL = ENV.str('SITE_URL', ALLOWED_HOSTS[0])
 
 DATABASES = {'default': ENV.db('DATABASE_URL')}
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
-TIME_ZONE = ENV('TZ', default='UTC')
+TIME_ZONE = ENV.str('TZ', 'UTC')
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
+
+VERSION = ENV.str('VERSION', ENV.str('HEROKU_RELEASE_VERSION', 'dev'))
 
 # APPS
 
@@ -34,9 +44,7 @@ THIRD_PARTY_APPS = [
     'templated_email',
 ]
 
-LOCAL_APPS = [
-    'anysync.core',
-]
+LOCAL_APPS = []
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -61,7 +69,7 @@ TEMPLATES = [
             str(APPS_DIR.path('templates')),
         ],
         'OPTIONS': {
-            'debug': False,
+            'debug': DEBUG,
             'loaders': [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
@@ -79,27 +87,30 @@ TEMPLATES = [
     },
 ]
 
-# AMAZON S3
-
-AWS_STORAGE_BUCKET_NAME = ENV('AWS_BUCKET_NAME')
-AWS_S3_REGION_NAME = ENV('AWS_REGION_NAME')
-AWS_ACCESS_KEY_ID = ENV('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = ENV('AWS_SECRET_ACCESS_KEY')
-AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
-
 # STATIC & MEDIA
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [str(APPS_DIR.path('static'))]
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
-
 STATIC_LOCATION = 'static'
+STATIC_ROOT = str(ROOT_DIR.path(STATIC_LOCATION))
+STATICFILES_DIRS = [str(APPS_DIR.path('static'))]
+
+MEDIA_URL = '/media/'
 MEDIA_LOCATION = 'media'
-DEFAULT_FILE_STORAGE = 'config.storages.MediaStorage'
-STATICFILES_STORAGE = 'config.storages.StaticStorage'
+MEDIA_ROOT = str(ROOT_DIR.path(MEDIA_LOCATION))
+
+# AMAZON S3
+
+if ENV.bool('DJANGO_USE_AWS'):
+    AWS_STORAGE_BUCKET_NAME = ENV('AWS_BUCKET_NAME')
+    AWS_S3_REGION_NAME = ENV('AWS_REGION_NAME')
+    AWS_ACCESS_KEY_ID = ENV('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = ENV('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
+
+    from storages.backends.s3boto3 import S3Boto3Storage
+
+    STATICFILES_STORAGE = S3Boto3Storage(location=STATIC_LOCATION)
+    DEFAULT_FILE_STORAGE = S3Boto3Storage(location=MEDIA_LOCATION, file_overwrite=False)
 
 # PASSWORDS
 
@@ -127,16 +138,17 @@ EMAIL_HOST = EMAIL_CONFIG['EMAIL_HOST']
 EMAIL_PORT = EMAIL_CONFIG['EMAIL_PORT']
 EMAIL_HOST_USER = EMAIL_CONFIG['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = EMAIL_CONFIG['EMAIL_HOST_PASSWORD']
-EMAIL_USE_TLS = EMAIL_CONFIG['EMAIL_USE_TLS']
-DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
+EMAIL_USE_TLS = EMAIL_CONFIG.get('EMAIL_USE_TLS', False)
+EMAIL_FILE_PATH = str(TEMP_DIR.path('emails'))
 
+DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
 TEMPLATED_EMAIL_TEMPLATE_DIR = 'email/'
 TEMPLATED_EMAIL_FILE_EXTENSION = 'html'
 
 # MISC
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 from django.contrib.messages import constants as messages
 
