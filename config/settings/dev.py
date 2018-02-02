@@ -2,17 +2,19 @@ from . import ENV
 
 # DEFAULTS
 
-ENV.ENVIRON.setdefault('ENV_FILE', 'dev.env')
+DEFAULTS = {
+    'DJANGO_DEBUG': 'True',
+    'DJANGO_ADMIN_URL': '^admin/',
+    'DJANGO_SECRET_KEY': 'super-secret-key',
+    'DJANGO_ALLOWED_HOSTS': '*',
+    'SITE_URL': 'http://localhost',
+    'DATABASE_URL': 'sqlite:///sqlite.db',
+    'DJANGO_USE_AWS': 'False',
+    'EMAIL_URL': 'filemail://',
+    'VERSION': 'dev',
+}
 
-ENV.ENVIRON.setdefault('DJANGO_DEBUG', 'True')
-ENV.ENVIRON.setdefault('DJANGO_ADMIN_URL', '^admin/')
-ENV.ENVIRON.setdefault('DJANGO_SECRET_KEY', 'super-secret-key')
-ENV.ENVIRON.setdefault('DJANGO_ALLOWED_HOSTS', '*')
-ENV.ENVIRON.setdefault('SITE_URL', 'http://localhost')
-
-ENV.ENVIRON.setdefault('DATABASE_URL', 'sqlite:///sqlite.db')
-ENV.ENVIRON.setdefault('DJANGO_USE_AWS', 'False')
-ENV.ENVIRON.setdefault('EMAIL_URL', 'consolemail://')
+ENV.read_env(ENV.str('ENV_FILE', 'dev.env'), **DEFAULTS)
 
 from .base import *
 
