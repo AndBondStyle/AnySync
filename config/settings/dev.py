@@ -17,12 +17,3 @@ DEFAULTS = {
 ENV.read_env(ENV.str('ENV_FILE', 'dev.env'), **DEFAULTS)
 
 from .base import *
-
-# SERVING
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'asgiref.inmemory.ChannelLayer',
-        'ROUTING': 'config.routing.routing',
-    },
-}
