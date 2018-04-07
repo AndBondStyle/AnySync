@@ -8,3 +8,8 @@ __pycache__/
 .venv
 venv/
 ENV/
+
+# OTHER
+*.db
+/emails/
+.idea
