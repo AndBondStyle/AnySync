@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}Under construction{% endblock %}
+
+{% block style %}
+    <style type="text/css">
+        #message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        #message img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="message">
+        <img src="{% static 'img/bulldozer.png' %}"/>
+        <h1>AnySync is being refatored</h1>
+        <h3>Come back a few days later to see it live</h3>
+    </div>
+{% endblock %}
