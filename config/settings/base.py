@@ -3,8 +3,6 @@ from environ import Path
 
 # GENERAL
 
-if ENV.str('ENV_FILE'): ENV.read_env(ENV.str('ENV_FILE'))
-
 ROOT_DIR = Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('anysync')
 TEMP_DIR = ROOT_DIR.path('temp')
@@ -15,6 +13,7 @@ ADMIN_URL = ENV.str('DJANGO_ADMIN_URL')
 SECRET_KEY = ENV.str('DJANGO_SECRET_KEY')
 ALLOWED_HOSTS = ENV.list('DJANGO_ALLOWED_HOSTS')
 SITE_URL = ENV.str('SITE_URL', ALLOWED_HOSTS[0])
+VERSION = ENV.str('VERSION', None)
 
 DATABASES = {'default': ENV.db('DATABASE_URL')}
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -23,8 +22,6 @@ TIME_ZONE = ENV.str('TZ', 'UTC')
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
-
-VERSION = ENV.str('VERSION', ENV.str('HEROKU_RELEASE_VERSION', 'dev'))
 
 # APPS
 
@@ -41,7 +38,6 @@ THIRD_PARTY_APPS = [
     'channels',
     'storages',
     'crispy_forms',
-    'templated_email',
 ]
 
 LOCAL_APPS = []
