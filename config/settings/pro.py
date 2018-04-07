@@ -14,6 +14,17 @@ for key, value in DEFAULTS.items(): ENV.ENVIRON.setdefault(key, value)
 
 from .base import *
 
+# AMAZON S3
+
+if ENV.bool('DJANGO_USE_AWS'):
+    from storages.backends.s3boto3 import S3Boto3Storage
+
+    StaticStorage = type('StaticStorage', (S3Boto3Storage,), {'location': STATIC_LOCATION})
+    MediaStorage = type('MediaStorage', (S3Boto3Storage,), {'location': MEDIA_LOCATION, 'file_overwrite': False})
+
+    STATICFILES_STORAGE = 'config.settings.pro.StaticStorage'
+    DEFAULT_FILE_STORAGE = 'config.settings.pro.MediaStorage'
+
 # SECURITY
 
 SECURE_HSTS_SECONDS = 3600
