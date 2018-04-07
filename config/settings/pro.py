@@ -5,7 +5,7 @@ from . import ENV
 DEFAULTS = {
     'DJANGO_DEBUG': 'False',
     'DJANGO_USE_AWS': 'True',
-    'VERSION': ENV.str('HEROKU_RELEASE_VERSION', None),
+    'VERSION': ENV.str('HEROKU_RELEASE_VERSION', 'pro'),
 }
 
 ENV_FILE = ENV.str('ENV_FILE', None)
@@ -13,12 +13,6 @@ if ENV_FILE is not None: ENV.read_env(ENV_FILE)
 for key, value in DEFAULTS.items(): ENV.ENVIRON.setdefault(key, value)
 
 from .base import *
-
-# EXTRA APPS & MIDDLEWARE
-
-INSTALLED_APPS += ['raven.contrib.django.raven_compat']
-RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
-MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
 
 # SECURITY
 
@@ -36,15 +30,14 @@ X_FRAME_OPTIONS = 'DENY'
 
 # CACHING
 
-REDIS_LOCATION = ENV.str('REDIS_URL') + '/0'
-
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_LOCATION,
+        'LOCATION': ENV.str('REDIS_URL'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'IGNORE_EXCEPTIONS': True,
+            'DB': 0,
         }
     }
 }
@@ -53,62 +46,21 @@ CACHES = {
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
-        'ROUTING': 'config.routing.routing',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [REDIS_LOCATION],
+            'hosts': [ENV.str('REDIS_URL') + '/1'],
         },
     },
 }
 
 # RAVEN & SENTRY
 
+INSTALLED_APPS += ['raven.contrib.django.raven_compat']
+RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
+MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
+
 SENTRY_CLIENT = 'raven.contrib.django.raven_compat.DjangoClient'
 RAVEN_CONFIG = {
     'dsn': ENV.str('SENTRY_DSN'),
     'release': VERSION,
-}
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'root': {
-        'level': 'WARNING',
-        'handlers': ['sentry'],
-    },
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'handlers': {
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        }
-    },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'raven': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-    },
 }

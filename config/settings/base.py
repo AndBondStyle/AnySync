@@ -4,16 +4,18 @@ from environ import Path
 # GENERAL
 
 ROOT_DIR = Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path('anysync')
+APPS_DIR = ROOT_DIR.path('backend')
 TEMP_DIR = ROOT_DIR.path('temp')
-ROOT_URLCONF = 'config.urls'
+
+ROOT_URLCONF = 'config.routing'
+ASGI_APPLICATION = 'config.routing.application'
 
 DEBUG = ENV.bool('DJANGO_DEBUG')
 ADMIN_URL = ENV.str('DJANGO_ADMIN_URL')
 SECRET_KEY = ENV.str('DJANGO_SECRET_KEY')
 ALLOWED_HOSTS = ENV.list('DJANGO_ALLOWED_HOSTS')
 SITE_URL = ENV.str('SITE_URL', ALLOWED_HOSTS[0])
-VERSION = ENV.str('VERSION', None)
+VERSION = ENV.str('VERSION')
 
 DATABASES = {'default': ENV.db('DATABASE_URL')}
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -25,24 +27,16 @@ USE_TZ = False
 
 # APPS
 
-DJANGO_APPS = [
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-]
 
-THIRD_PARTY_APPS = [
     'channels',
-    'storages',
-    'crispy_forms',
 ]
-
-LOCAL_APPS = []
-
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # MIDDLEWARE
 
@@ -87,12 +81,12 @@ TEMPLATES = [
 
 STATIC_URL = '/static/'
 STATIC_LOCATION = 'static'
-STATIC_ROOT = str(ROOT_DIR.path(STATIC_LOCATION))
-STATICFILES_DIRS = [str(APPS_DIR.path('static'))]
+STATIC_ROOT = str(ROOT_DIR.path('static'))
+STATICFILES_DIRS = [str(ROOT_DIR.path('frontend', 'static'))]
 
 MEDIA_URL = '/media/'
 MEDIA_LOCATION = 'media'
-MEDIA_ROOT = str(ROOT_DIR.path(MEDIA_LOCATION))
+MEDIA_ROOT = str(ROOT_DIR.path('frontend', 'media'))
 
 # AMAZON S3
 
@@ -129,22 +123,19 @@ AUTH_PASSWORD_VALIDATORS = [
 
 EMAIL_CONFIG = ENV.email('EMAIL_URL')
 
-EMAIL_BACKEND = EMAIL_CONFIG['EMAIL_BACKEND']
-EMAIL_HOST = EMAIL_CONFIG['EMAIL_HOST']
-EMAIL_PORT = EMAIL_CONFIG['EMAIL_PORT']
-EMAIL_HOST_USER = EMAIL_CONFIG['EMAIL_HOST_USER']
-EMAIL_HOST_PASSWORD = EMAIL_CONFIG['EMAIL_HOST_PASSWORD']
+EMAIL_BACKEND = EMAIL_CONFIG.get('EMAIL_BACKEND')
+EMAIL_HOST = EMAIL_CONFIG.get('EMAIL_HOST')
+EMAIL_PORT = EMAIL_CONFIG.get('EMAIL_PORT')
+EMAIL_HOST_USER = EMAIL_CONFIG.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = EMAIL_CONFIG.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = EMAIL_CONFIG.get('EMAIL_USE_TLS', False)
-EMAIL_FILE_PATH = str(TEMP_DIR.path('emails'))
+EMAIL_FILE_PATH = str(ROOT_DIR.path('emails'))
 
 DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
-TEMPLATED_EMAIL_TEMPLATE_DIR = 'email/'
-TEMPLATED_EMAIL_FILE_EXTENSION = 'html'
 
 # MISC
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 from django.contrib.messages import constants as messages
 
