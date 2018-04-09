@@ -17,6 +17,7 @@ class SignInForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super(SignInForm, self).__init__(*args, **kwargs)
         self.fields['username'].label = 'Email or username'
+        self.fields['username'].widget.attrs['autofocus'] = False
 
 
 class SignUpForm(ModelForm):

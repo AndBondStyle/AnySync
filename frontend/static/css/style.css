@@ -73,7 +73,7 @@ body > .container {
 .cards {
     padding-left: -1rem;
     padding-right: -1rem;
-    margin: 3rem 0 -1rem;
+    margin: 3rem -1em -1rem;
 }
 
 .cards > div {
@@ -115,7 +115,7 @@ body > .container {
 
 .form-column {
     max-width: 400px;
-    margin: 0 auto;
+    margin: 0 auto 2rem;
 }
 
 /* Responsive styles */
