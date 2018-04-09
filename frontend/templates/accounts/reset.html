@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+
+{% block title %}Reset password{% endblock %}
+
+{% block links %}
+    {% with 'auth' as section %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="form-column text-center">
+                    <h2 class="display-4 mb-3">Reset password</h2>
+                    <form action="." method="POST" novalidate>
+                        {% csrf_token %}
+                        {% for error in signin_form.non_field_errors %}
+                            <p class="text-danger mb-2">{{ error }}</p>
+                        {% endfor %}
+                        {% include 'core/field.html' with field=form.email icon='envelope' %}
+                        <div class="form-group">
+                            <input type="submit" name="submit" value="send" class="btn btn-primary btn-block">
+                        </div>
+                    </form>
+                    <p class="text-muted">Hint: try not to forget your new password</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

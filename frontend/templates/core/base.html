@@ -27,28 +27,7 @@
             <nav class="menu py-2">
                 <ul class="nav nav-pills">
                     {% block links %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if section == 'home' %}active{% endif %}"
-                               href="{% url 'home' %}">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if section == 'channels' %}active{% endif %}"
-                               href="{% url 'home' %}">Channels</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if section == 'upload' %}active{% endif %}"
-                               href="{% url 'home' %}">Upload</a>
-                        </li>
-                        {% if request.user.is_authenticated %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}">Logout</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if section == 'auth' %}active{% endif %}"
-                                   href="{% url 'auth' %}">Sign in</a>
-                            </li>
-                        {% endif %}
+                        {% include 'core/links.html' %}
                     {% endblock %}
                 </ul>
             </nav>
@@ -66,11 +45,13 @@
         </div>
 
         {% block content %}{% endblock %}
-
-        <footer class="footer text-center">
-            <h5>Copyright &copy; <a href="https://github.com/AndBondStyle">AndBondStyle</a> 2018</h5>
-        </footer>
     </div>
+
+    <footer class="footer">
+        <div class="container">
+            <h5 class="mb-0">Copyright &copy; <a href="https://github.com/AndBondStyle">AndBondStyle</a> 2018</h5>
+        </div>
+    </footer>
 
     <!--JavaScript-->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>

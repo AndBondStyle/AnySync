@@ -135,7 +135,6 @@ DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
 AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = ['backend.accounts.backends.DualAuthBackend']
 AUTH_LOGIN_URL = '/accounts/auth/'
-LOGIN_REDIRECT_URL = '/home/'
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 

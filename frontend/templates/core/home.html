@@ -3,7 +3,7 @@
 
 {% block title %}Home{% endblock %}
 
-{% block header %}
+{% block links %}
     {% with 'home' as section %}
         {{ block.super }}
     {% endwith %}
@@ -22,15 +22,17 @@
         </p>
     </div>
 
-    <div class="row cards">
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
+    <div class="container">
+        <div class="row cards">
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+            {% include 'core/card.html' %}
+        </div>
     </div>
 {% endblock %}

@@ -2,9 +2,21 @@
 
 /* General */
 
+html {
+    overflow-y: scroll;
+}
+
+html, body {
+    height: 100%;
+}
+
 body {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .container {
+    flex-grow: 1;
 }
 
 .header, .cards, .footer {
@@ -15,6 +27,7 @@ body {
 /* Header */
 
 .header {
+    padding-top: 1.5rem;
     padding-bottom: 1rem;
     display: flex;
     flex-direction: column;
@@ -58,7 +71,9 @@ body {
 /* Cards */
 
 .cards {
-    margin: 3rem -1em 2rem;
+    padding-left: -1rem;
+    padding-right: -1rem;
+    margin: 3rem 0 -1rem;
 }
 
 .cards > div {
@@ -78,11 +93,17 @@ body {
 /* Footer */
 
 .footer {
-    padding-top: 1.5rem;
+    width: 100%;
+    text-align: center;
+}
+
+.footer .container {
+    margin-top: 2rem;
+    padding: 1.5rem;
     border-top: .05rem solid #e5e5e5;
 }
 
-/* Login page */
+/* Forms */
 
 .input-group-prepend span {
     min-width: 40px;
@@ -92,15 +113,7 @@ body {
     margin: 0 auto;
 }
 
-.two-forms {
-    margin-bottom: 2rem;
-}
-
-.two-forms > div {
-    margin-bottom: 1rem;
-}
-
-.two-forms .wrapper {
+.form-column {
     max-width: 400px;
     margin: 0 auto;
 }
