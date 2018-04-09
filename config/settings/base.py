@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.admin',
 
     'channels',
+    'widget_tweaks',
+    'backend.accounts',
 ]
 
 # MIDDLEWARE
@@ -108,10 +110,10 @@ PASSWORD_HASHERS = [
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # EMAIL
@@ -129,6 +131,11 @@ EMAIL_FILE_PATH = str(ROOT_DIR.path('emails'))
 DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
 
 # MISC
+
+AUTH_USER_MODEL = 'accounts.User'
+AUTHENTICATION_BACKENDS = ['backend.accounts.backends.DualAuthBackend']
+AUTH_LOGIN_URL = '/accounts/auth/'
+LOGIN_REDIRECT_URL = '/home/'
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 

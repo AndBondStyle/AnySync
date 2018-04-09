@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+
+{% block title %}Home{% endblock %}
+
+{% block header %}
+    {% with 'home' as section %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block content %}
+    <div class="jumbotron text-white" style="background: url('{% static 'img/gandalf.png' %}') no-repeat right;">
+        <h1 class="display-4">Welcome to AnySync</h1>
+        <p class="lead">Synchronize your favourite media across your favourite devices</p>
+        <p>
+            {% if request.user.is_authenticated %}
+                <a class="btn btn-lg btn-primary" href="{% url 'home' %}">Upload</a>
+            {% else %}
+                <a class="btn btn-lg btn-primary" href="{% url 'auth' %}">Sign up</a>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="row cards">
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+        {% include 'core/card.html' %}
+    </div>
+{% endblock %}

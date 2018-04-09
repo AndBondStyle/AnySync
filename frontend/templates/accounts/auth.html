@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+
+{% block title %}Login{% endblock %}
+
+{% block links %}
+    {% with 'auth' as section %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block content %}
+    <div class="two-forms row">
+        <div class="col-12 col-md-6">
+            <div class="wrapper">
+                <h2 class="text-center display-4 mb-3">Sign in</h2>
+                <form action="." method="POST" novalidate>
+                    {% csrf_token %}
+                    {% for error in signin_form.non_field_errors %}
+                        <p class="text-danger text-center mb-2">{{ error }}</p>
+                    {% endfor %}
+                    {% include 'core/field.html' with field=signin_form.username icon='envelope' %}
+                    {% include 'core/field.html' with field=signin_form.password icon='lock' %}
+                    <div class="form-group">
+                        <input type="submit" name="submit" value="sign in" class="btn btn-primary btn-block">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="wrapper">
+                <h2 class="text-center display-4 mb-3">Sign up</h2>
+                <form action="." method="POST" novalidate>
+                    {% csrf_token %}
+                    {% for error in signup_form.non_field_errors %}
+                        <p class="text-danger text-center mb-2">{{ error }}</p>
+                    {% endfor %}
+                    {% include 'core/field.html' with field=signup_form.username icon='user' %}
+                    {% include 'core/field.html' with field=signup_form.email icon='envelope' %}
+                    <div class="form-group">
+                        <input type="submit" name="submit" value="sign up" class="btn btn-primary btn-block">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

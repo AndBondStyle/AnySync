@@ -1,8 +1,9 @@
 # BASE DEPENDENCIES
 
-django==2.0.4           # Web framework
-channels==2.0.2         # Asynchrony & extra protocols
-pillow==5.1.0           # Image proccessing
-argon2-cffi==18.1.0     # Password hasher
-awesome-slugify==1.6.5  # Slug generation
-django-environ==0.4.4   # Environment management
+django==2.0.4                # Web framework
+channels==2.0.2              # Asynchrony & extra protocols
+pillow==5.1.0                # Image proccessing
+argon2-cffi==18.1.0          # Password hasher
+awesome-slugify==1.6.5       # Slug generation
+django-environ==0.4.4        # Environment management
+django-widget-tweaks==1.4.2  # Form rendering

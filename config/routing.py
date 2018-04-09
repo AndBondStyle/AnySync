@@ -6,6 +6,7 @@ from django.contrib import admin
 urlpatterns = [
     url(settings.ADMIN_URL, admin.site.urls),
     url(r'^', include('backend.core.urls')),
+    url(r'^accounts/', include('backend.accounts.urls')),
 ]
 
 if settings.DEBUG:
