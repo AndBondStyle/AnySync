@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     'channels',
     'widget_tweaks',
+    'backend.core',
     'backend.accounts',
 ]
 
