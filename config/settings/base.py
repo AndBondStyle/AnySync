@@ -20,6 +20,13 @@ VERSION = ENV.str('VERSION')
 DATABASES = {'default': ENV.db('DATABASE_URL')}
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {'hosts': [ENV.str('REDIS_URL')]},
+    }
+}
+
 TIME_ZONE = ENV.str('TZ', 'UTC')
 USE_I18N = False
 USE_L10N = False

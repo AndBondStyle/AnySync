@@ -1,0 +1,15 @@
+{% extends 'emails/base.html' %}
+
+{% block title %}
+    Hello {{ username }},
+{% endblock %}
+
+{% block message %}
+    Thank you for signing up for the AnySync Network.
+    The only thing left is to confirm your email address.
+    Please press the button below to proceed:
+{% endblock %}
+
+{% block button %}
+    ACTIVATE ACCOUNT
+{% endblock %}

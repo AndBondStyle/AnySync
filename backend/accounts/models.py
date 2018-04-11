@@ -1,10 +1,15 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
+from django.utils.crypto import get_random_string
+from django.utils.timezone import timedelta, now
+from django.shortcuts import reverse
 from django.core import validators
 from django.db import models
+from backend.core.utils import Choices, send_sync
 
 __all__ = [
     'User',
+    'Confirmation',
 ]
 
 
@@ -69,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=False)
-    date_joined = models.DateTimeField('date joined', auto_now_add=True)
+    date_joined = models.DateTimeField('date joined', default=now)
 
     objects = UserManager()
 
@@ -95,6 +100,37 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     get_full_name = get_short_name = lambda self: self.username
 
-    def send_mail(self, subject, message, from_email=None, **kwargs):
-        pass
-        # send_mail(subject, message, from_email, [self.email], **kwargs)
+    def send_mail(self, template, subject, context):
+        send_sync('core', {
+            'type': 'send_mail',
+            'subject': subject,
+            'email': self.email,
+            'template': template,
+            'context': context,
+        })
+
+
+class Confirmation(models.Model):
+    TYPES = Choices('Activate', 'Reset')
+    SUBJECTS = Choices('Activate your account', 'Reset your password')
+
+    type = models.CharField('type', max_length=1, choices=TYPES, default='0')
+    user = models.ForeignKey(User, verbose_name='user', on_delete=models.CASCADE)
+    key = models.CharField('key', max_length=50)
+    created = models.DateTimeField('created', default=now)
+    expired = property(lambda self: self.created + timedelta(hours=24) <= now())
+
+    @staticmethod
+    def create(request, user, type):
+        key = get_random_string(50)
+        path = reverse('confirm', kwargs={'key': key})
+        url = request.build_absolute_uri(path)
+        Confirmation(type=type, user=user, key=key).save()
+        template = 'emails/%s.html' % Confirmation.TYPES[type].lower()
+        subject = Confirmation.SUBJECTS[type]
+        user.send_mail(template, subject, {
+            'username': user.username,
+            'email': user.email,
+            'url': url,
+        })
+        return url

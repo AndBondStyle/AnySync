@@ -39,31 +39,6 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = 'DENY'
 
-# CACHING
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': ENV.str('REDIS_URL'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'IGNORE_EXCEPTIONS': True,
-            'DB': 0,
-        }
-    }
-}
-
-# SERVING
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [ENV.str('REDIS_URL') + '/1'],
-        },
-    },
-}
-
 # RAVEN & SENTRY
 
 INSTALLED_APPS += ['raven.contrib.django.raven_compat']

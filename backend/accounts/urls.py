@@ -1,8 +1,9 @@
-from django.conf.urls import url
+from django.urls import path
 from .views import *
 
 urlpatterns = [
-    url(r'^auth/$', auth, name='auth'),
-    url(r'^logout/$', logout, name='logout'),
-    url(r'^reset/$', reset, name='reset'),
+    path('auth/', auth, name='auth'),
+    path('logout/', logout, name='logout'),
+    path('reset/', reset, name='reset'),
+    path('confirm/<slug:key>/', confirm, name='confirm'),
 ]

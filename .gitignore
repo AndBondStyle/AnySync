@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 
 # ENVIRONMENT
-.env
-.venv
+*.env
+*.venv
 venv/
 ENV/
 
