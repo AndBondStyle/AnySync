@@ -3,7 +3,6 @@
 -r base.txt
 
 raven==6.6.0            # Sentry.io client
-django-redis==4.9.0     # Redis adapter
 channels_redis==2.1.1   # ASGI Redis adapter
 django-storages==1.6.6  # Extra storages adapter
 boto3==1.7.2            # AWS S3 client
