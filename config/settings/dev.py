@@ -4,7 +4,7 @@ from . import ENV
 
 DEFAULTS = {
     'DJANGO_DEBUG': 'True',
-    'DJANGO_ADMIN_URL': '^admin/',
+    'DJANGO_ADMIN_URL': 'admin/',
     'DJANGO_SECRET_KEY': 'super-secret-key',
     'DJANGO_ALLOWED_HOSTS': '*',
     'SITE_URL': 'http://localhost',
