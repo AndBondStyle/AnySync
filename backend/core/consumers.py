@@ -1,7 +1,10 @@
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from channels.consumer import SyncConsumer
 from django.template import Template
+from .utils import WebsocketConsumer
+from time import time
 import re
 
 
@@ -19,3 +22,10 @@ class CoreConsumer(SyncConsumer):
         email.attach_alternative(text, 'text/plain')
         email.attach_alternative(html, 'text/html')
         email.send()
+
+
+# Simple yet powerful time sync backend
+class SyncConsumer(AsyncWebsocketConsumer):
+    async def receive(self, **kwargs):
+        data = str(round(time() * 1000))
+        await self.send(data)

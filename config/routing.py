@@ -12,17 +12,15 @@ if settings.DEBUG:
     from django.conf.urls.static import static
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
 from channels.routing import ProtocolTypeRouter, URLRouter, ChannelNameRouter
 from channels.auth import AuthMiddlewareStack
+from backend.core.consumers import SyncConsumer
 from backend.core.consumers import CoreConsumer
 
 application = ProtocolTypeRouter({
-    'websocket': AuthMiddlewareStack(
-        URLRouter({
-            # path('broadcast/'),
-        })
-    ),
+    'websocket': URLRouter([
+        path('sync/', SyncConsumer),
+    ]),
     'channel': ChannelNameRouter({
         'core': CoreConsumer,
     }),
