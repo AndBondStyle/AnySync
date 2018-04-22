@@ -18,7 +18,6 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=50, verbose_name='title')),
                 ('preview', models.ImageField(blank=True, default='default.png', null=True, upload_to='', verbose_name='preview')),
                 ('mode', models.CharField(choices=[('0', 'Empty'), ('1', 'Once'), ('2', 'Loop')], max_length=1, verbose_name='mode')),
-                ('start', models.DateTimeField(blank=True, null=True, verbose_name='start')),
                 ('static', models.BooleanField(default=False, verbose_name='static')),
             ],
         ),
