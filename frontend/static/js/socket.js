@@ -1,7 +1,7 @@
 // Simple socket.io-like wrapper based on ReconnectingWebSocket
 // Features: auto JSON conversion and `on` method for binding
 const Socket = function (path) {
-    var scheme = window.location.protocol === 'https' ? 'wss' : 'ws';
+    var scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
     var url = scheme + '://' + window.location.host + path;
     var socket = new ReconnectingWebSocket(url);
     var callbacks = {};

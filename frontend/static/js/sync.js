@@ -14,7 +14,7 @@ const Sync = new function () {
 
     this.init = (callback) => {
         this.onready = callback;
-        var scheme = window.location.protocol === 'https' ? 'wss' : 'ws';
+        var scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
         this.location = scheme + '://' + window.location.host + '/sync/';
         setInterval(this.sync, this.interval);
         return this.sync();
