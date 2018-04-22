@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             name='online',
             field=models.PositiveSmallIntegerField(default=0, verbose_name='online'),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name='stream',
             name='start',
             field=models.IntegerField(blank=True, null=True, verbose_name='start'),
