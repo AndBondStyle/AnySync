@@ -2,6 +2,7 @@ const Stream = new function() {
     this.socket = Socket(window.location.pathname);
 
     this.send = (text) => this.socket.send('chat-message', {text: text});
+    this.socket.on('update-online', (data) => $('.online').text(data.value));
 
     this.socket.on('chat-message', (data) => {
         var node = $('#templates .message').clone();

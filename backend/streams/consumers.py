@@ -17,6 +17,10 @@ class StreamConsumer(WebsocketConsumer):
         self.stream.online += 1
         self.stream.save()
         self.accept()
+        self.group_send(self.group, {
+            'type': 'update',
+            'mode': 'online',
+        })
         if self.scope['user'].is_authenticated:
             self.group_send(self.group, {
                 'type': 'chat_message',
@@ -39,7 +43,7 @@ class StreamConsumer(WebsocketConsumer):
                 'class': 'text-danger',
                 'text': 'You\'re sending messages too quickly - please calm down a bit',
             })
-            username = self.scope['user'].username
+            username = self.scope['user'].username + ':'
             css_class = 'text-admin' if self.scope['user'].is_staff else 'text-dark'
             text = re.sub('\s+', ' ', escape(data.get('text', ''))).strip()
             if len(text) == 0: return self.send('chat-message', {
@@ -61,7 +65,8 @@ class StreamConsumer(WebsocketConsumer):
                 'text': data['text'],
             })
 
-    def chat_message(self, data): self.send('chat-message', data)
+    def chat_message(self, data):
+        self.send('chat-message', data)
 
     def disconnect(self, code):
         self.channel_layer.group_discard(self.group, self.channel_name)
@@ -69,3 +74,20 @@ class StreamConsumer(WebsocketConsumer):
             self.stream.refresh_from_db()
             self.stream.online -= 1
             self.stream.save()
+        self.group_send(self.group, {
+            'type': 'update',
+            'mode': 'online',
+        })
+        if self.scope['user'].is_authenticated:
+            self.group_send(self.group, {
+                'type': 'chat_message',
+                'username': '[CHAT]',
+                'class': 'text-muted',
+                'text': self.scope['user'].username + ' left the stream',
+            })
+
+    def update(self, data):
+        if data['mode'] == 'online':
+            self.stream.refresh_from_db()
+            print('Online:', self.stream.online)
+            self.send('update-online', {'value': self.stream.online})

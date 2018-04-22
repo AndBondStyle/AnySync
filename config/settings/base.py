@@ -73,6 +73,9 @@ TEMPLATES = [
         ],
         'OPTIONS': {
             'debug': DEBUG,
+            'libraries': {
+                'core.tags': 'backend.core.tags',
+            },
             'loaders': [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
