@@ -3,25 +3,75 @@
 
 {% block title %}{{ stream.title|title }}{% endblock %}
 
+{% block javascript %}
+    <script src="{% static 'js/stream.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <div class="row">
-        <div id="player" class="col-12 col-lg-8">
-            <div class="card bg-primary">
-                <img src="{% static 'img/default.png' %}" class="card-img-top"/>
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 mr-2 text-light"><b>{{ stream.title }}</b></h5>
-                    <h4 class="mb-0">
-                        <span class="badge badge-secondary d-flex align-items-center"
-                              data-toggle="tooltip" data-placement="bottom" title="{{ stream.online }} people in sync">
-                            <i class="fa fa-wifi"></i>
-                            <span class="ml-2">{{ stream.online }}</span>
-                        </span>
-                    </h4>
+        <div id="player" class="col-12 col-lg-8 mb-5">
+            <div class="card bg-primary text-light">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 mr-2"><b>{{ stream.title }}</b></h5>
+                        <h4 class="mb-0">
+                            <span class="badge badge-secondary d-flex align-items-center" data-toggle="tooltip"
+                                  data-placement="bottom" title="{{ stream.online }} people in sync">
+                                <i class="fa fa-wifi"></i>
+                                <span class="ml-2 online">{{ stream.online }}</span>
+                            </span>
+                        </h4>
+                    </div>
+                </div>
+                <div class="media">
+                    <img src="{% static 'img/default.png' %}"/>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex align-items-center">
+                        <h5 id="pause" class="text-light pointer mb-0 mr-3">
+                            <span class="fa fa-pause"></span>
+                        </h5>
+                        <h4 id="volume-btn" class="text-light pointer mb-0 mr-2">
+                            <i class="fa fa-volume-up"></i>
+                        </h4>
+                        <input id="volume" type="range" min="0" max="10" step="1" value="5">
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="chat" class="col-12 col-lg-4">
-            <h1>Chat</h1>
+        <div id="chat" class="col-12 col-lg-4 mb-5">
+            <div class="card h-100 bg-secondary text-dark">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 mr-2"><b>Stream chat</b></h5>
+                        <h4 class="mb-0">
+                            <span class="badge badge-primary d-flex align-items-center" data-toggle="tooltip"
+                                  data-placement="bottom" title="{{ stream.online }} people in sync">
+                                <i class="fa fa-wifi"></i>
+                                <span class="ml-2 online">{{ stream.online }}</span>
+                            </span>
+                        </h4>
+                    </div>
+                </div>
+                <div class="messages">
+                </div>
+                <div class="card-footer p-2">
+                    {% if request.user.is_authenticated %}
+                        <div class="d-flex">
+                            <input id="message" type="text" class="form-control mr-2" placeholder="Send message...">
+                            <div id="send-btn" class="btn btn-primary"><i class="fa fa-send"></i></div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'auth' %}" class="btn btn-primary btn-block">Sign in to chat</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+    </div>
+{% endblock %}
+
+{% block templates %}
+    <div class="message">
+        <b class="username"></b> <span class="text"></span>
     </div>
 {% endblock %}

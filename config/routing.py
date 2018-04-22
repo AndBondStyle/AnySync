@@ -13,13 +13,14 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 from channels.routing import ProtocolTypeRouter, URLRouter, ChannelNameRouter
+from channels.auth import AuthMiddlewareStack
 from backend.core.consumers import CoreConsumer, SyncConsumer
 from backend.streams.consumers import StreamConsumer
 
 application = ProtocolTypeRouter({
     'websocket': URLRouter([
         path('sync/', SyncConsumer),
-        path('stream/<int:pk>/', StreamConsumer),
+        path('stream/<int:pk>/', AuthMiddlewareStack(StreamConsumer)),
     ]),
     'channel': ChannelNameRouter({
         'core': CoreConsumer,

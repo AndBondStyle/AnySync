@@ -2,6 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketCons
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from channels.consumer import SyncConsumer
+from asgiref.sync import async_to_sync
 from django.template import Template
 from time import time
 import re
@@ -37,9 +38,21 @@ class WebsocketConsumer(JsonWebsocketConsumer):
     def receive_json(self, content, **kwargs):
         event = content.get('event')
         if event is None or type(event) != str: return
-        callback = getattr(self, 'on_' + event, None)
+        callback = getattr(self, 'on_' + event.replace('-', '_'), None)
         if callback is None or not callable(callback): return
         return callback(data=content.get('data'))
+
+    def group_add(self, group, channel):
+        coroutine = self.channel_layer.group_add
+        return async_to_sync(coroutine)(group, channel)
+
+    def group_send(self, group, data):
+        coroutine = self.channel_layer.group_send
+        return async_to_sync(coroutine)(group, data)
+
+    def group_discard(self, group, channel):
+        coroutine = self.channel_layer.group_add
+        return async_to_sync(coroutine)(group, channel)
 
     def send(self, event, data=None):
         message = {'event': event, 'data': data}
