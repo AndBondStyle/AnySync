@@ -5,7 +5,7 @@ from django.utils.timezone import timedelta, now
 from django.shortcuts import reverse
 from django.core import validators
 from django.db import models
-from backend.core.utils import Choices, send_sync
+from backend.core.utils import Choices, Layer
 
 __all__ = [
     'User',
@@ -101,7 +101,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     get_full_name = get_short_name = lambda self: self.username
 
     def send_mail(self, template, subject, context):
-        send_sync('core', {
+        Layer.send_sync('core', {
             'type': 'send_mail',
             'subject': subject,
             'email': self.email,

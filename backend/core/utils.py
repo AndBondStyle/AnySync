@@ -1,9 +1,10 @@
-from channels.generic.websocket import JsonWebsocketConsumer
+from django.core.exceptions import ObjectDoesNotExist
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils.text import slugify
 
 
+# Convinient class to store model field's choices
 class Choices:
     def __init__(self, *values):
         self.choices = {}
@@ -24,27 +25,16 @@ class Choices:
         return self.choices[item]
 
 
+# Hybrid of django's get_object_or_404 and django-annoying's get_object_or_this
 def get_object_safe(klass, *args, default=None, error=None, **kwargs):
     try:
         object = klass.objects.get(*args, **kwargs)
         return object
-    except:
+    except ObjectDoesNotExist:
         if error is not None: raise error
         return default
 
 
-layer = get_channel_layer()
-send_sync = lambda *args: async_to_sync(layer.send)(*args)
-
-
-class WebsocketConsumer(JsonWebsocketConsumer):
-    def receive_json(self, content, **kwargs):
-        event = content.get('event')
-        if event is None or type(event) != str: return
-        callback = getattr(self, 'on_' + event, None)
-        if callback is None or not callable(callback): return
-        return callback(data=content.get('data'))
-
-    def send(self, event, data=None):
-        message = {'event': event, 'data': data}
-        return super(WebsocketConsumer, self).send_json(message)
+# Shortcut to current channel layer to use in other apps
+Layer = get_channel_layer()
+Layer.send_sync = lambda *args: async_to_sync(Layer.send)(*args)

@@ -14,7 +14,7 @@ __all__ = [
 class SignInForm(auth_forms.AuthenticationForm):
     error_messages = {
         'invalid_login': 'Authentication failed',
-        'inactive': 'This account is not activated (yet)',
+        'inactive': 'This account is not activated yet',
     }
 
     def __init__(self, *args, **kwargs):

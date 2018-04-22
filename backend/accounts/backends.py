@@ -7,6 +7,8 @@ class DualAuthBackend(ModelBackend):
         try:
             user = UserModel.objects.get(Q(username__iexact=username) | Q(email__iexact=username))
         except UserModel.DoesNotExist:
+            # Run the default password hasher once for security reasons
+            # https://code.djangoproject.com/ticket/20760
             UserModel().set_password(password)
             return
         else:
