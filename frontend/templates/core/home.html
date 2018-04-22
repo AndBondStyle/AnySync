@@ -23,14 +23,8 @@
     </div>
 
     <div class="row cards">
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
-        {% include 'core/card.html' %}
+        {% for stream in streams %}
+            {% include 'core/card.html' %}
+        {% endfor %}
     </div>
 {% endblock %}

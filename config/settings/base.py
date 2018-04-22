@@ -44,8 +44,11 @@ INSTALLED_APPS = [
 
     'channels',
     'widget_tweaks',
+    'sorl.thumbnail',
+
     'backend.core',
     'backend.accounts',
+    'backend.streams',
 ]
 
 # MIDDLEWARE
