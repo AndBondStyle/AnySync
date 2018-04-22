@@ -62,7 +62,9 @@
                             <div id="send-btn" class="btn btn-primary"><i class="fa fa-send"></i></div>
                         </div>
                     {% else %}
-                        <a href="{% url 'auth' %}" class="btn btn-primary btn-block">Sign in to chat</a>
+                        <a href="{% url 'auth' %}?next={{ request.path }}" class="btn btn-primary btn-block">
+                            Sign in to chat
+                        </a>
                     {% endif %}
                 </div>
             </div>
