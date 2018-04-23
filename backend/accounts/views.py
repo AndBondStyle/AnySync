@@ -41,8 +41,7 @@ class AuthView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
         messages.success(self.request, 'Logged in as %s <%s>' % (user.username, user.email))
-        super(AuthView, self).form_valid(form)
-        return redirect('home')
+        return super(AuthView, self).form_valid(form)
 
     def get_form(self, form_class=None):
         return self.signin_form

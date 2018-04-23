@@ -89,5 +89,4 @@ class StreamConsumer(WebsocketConsumer):
     def update(self, data):
         if data['mode'] == 'online':
             self.stream.refresh_from_db()
-            print('Online:', self.stream.online)
             self.send('update-online', {'value': self.stream.online})

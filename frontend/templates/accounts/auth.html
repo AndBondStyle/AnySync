@@ -15,7 +15,7 @@
             <div class="col-12 col-md-6">
                 <div class="form-column text-center">
                     <h2 class="display-4 mb-3">Sign in</h2>
-                    <form action="." method="POST" novalidate>
+                    <form action="{{ request.get_full_path }}" method="POST" novalidate>
                         {% csrf_token %}
                         {% for error in signin_form.non_field_errors %}
                             <p class="text-danger mb-2">{{ error }}</p>
@@ -32,7 +32,7 @@
             <div class="col-12 col-md-6">
                 <div class="form-column text-center">
                     <h2 class="display-4 mb-3">Sign up</h2>
-                    <form action="." method="POST" novalidate>
+                    <form action="{{ request.get_full_path }}" method="POST" novalidate>
                         {% csrf_token %}
                         {% for error in signup_form.non_field_errors %}
                             <p class="text-danger mb-2">{{ error }}</p>
