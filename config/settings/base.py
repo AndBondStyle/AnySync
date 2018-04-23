@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'backend.core',
     'backend.accounts',
+    'backend.media',
     'backend.streams',
 ]
 
@@ -111,7 +112,6 @@ if ENV.bool('DJANGO_USE_AWS'):
     AWS_S3_REGION_NAME = ENV('AWS_REGION_NAME')
     AWS_ACCESS_KEY_ID = ENV('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = ENV('AWS_SECRET_ACCESS_KEY')
-    AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
 
 # PASSWORDS
 
@@ -149,6 +149,7 @@ DEFAULT_FROM_EMAIL = '"AnySync" <{}>'.format(EMAIL_HOST_USER)
 AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = ['backend.accounts.backends.DualAuthBackend']
 AUTH_LOGIN_URL = '/accounts/auth/'
+LOGIN_REDIRECT_URL = '/home/'
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 
