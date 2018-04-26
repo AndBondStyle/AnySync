@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from urllib.parse import urlsplit, unquote
@@ -6,14 +7,25 @@ from tempfile import NamedTemporaryFile
 from ffmpy import FFmpeg, FFprobe
 from django.conf import settings
 from magic import from_buffer
-from os.path import basename
 from subprocess import PIPE
 import requests
+
+TEMP_DIR = str(settings.TEMP_DIR)
 
 
 class RemoteProvider:
     name = 'RemoteProvider'
     slug = 'remote'
+
+    @staticmethod
+    def make_thumbnail(file, geometry):
+        remote = default_storage.save('temp', file)
+        image = get_thumbnail(remote, geometry, crop='center')
+        return image
+
+    @staticmethod
+    def crop_video(file, start=None, end=None):
+        pass
 
     def __init__(self, value, **options):
         self.value = value
@@ -53,7 +65,7 @@ class RemoteProvider:
         yield 'Downloading...'
         res = requests.get(self.url, stream=True)
         if res.status_code != 200: raise ValidationError('Download error')
-        self.file = NamedTemporaryFile(dir=str(settings.TEMP_DIR))
+        self.file = NamedTemporaryFile(dir=TEMP_DIR)
         for size, chunk in enumerate(res, 1):
             self.file.write(chunk)
             if 128 * size >= settings.SOURCE_MAX_SIZE:
@@ -69,8 +81,8 @@ class RemoteProvider:
 
     def split(self):
         yield 'Splitting audio & video...'
-        self.audio = NamedTemporaryFile(dir=str(settings.TEMP_DIR))
-        self.video = NamedTemporaryFile(dir=str(settings.TEMP_DIR))
+        self.audio = NamedTemporaryFile(dir=TEMP_DIR)
+        self.video = NamedTemporaryFile(dir=TEMP_DIR)
         self.audio.close()
         self.video.close()
         ffmpeg = FFmpeg(
@@ -84,9 +96,23 @@ class RemoteProvider:
         self.audio = open(self.audio.name, 'rb')
         self.video = open(self.video.name, 'rb')
 
+    def transcode(self):
+        yield 'Converting audio...'
+        audio = NamedTemporaryFile(dir=TEMP_DIR)
+        ffmpeg = FFmpeg(
+            inputs={self.file.name: None},
+            outputs={
+                self.video.name: ['-map', '0:1', '-c:a', 'copy', '-f', 'mp3'],
+            }
+        )
+        ffmpeg.run()
+
     def process(self):
         yield 'Processing...'
-        if self.type == 'video': yield from self.split()
+        if self.type == 'video':
+            yield from self.split()
+        elif self.type == 'audio':
+            yield from self.transcode()
 
     def extract_meta(self):
         last = urlsplit(self.url).path.split('/')[-1]
@@ -101,16 +127,16 @@ class RemoteProvider:
             stdout = stdout.decode('utf-8')
             key = lambda s: s.isdigit() or s == '.'
             self.length = float(''.join(filter(key, stdout)))
-            # Validate?
         if self.type == 'image':
-            self.preview = get_thumbnail(self.file, '600x350', crop='center')
+            self.preview = self.crop(self.file, '600x350')
         elif self.type == 'video':
             yield 'Extracting preview thumbnail...'
             self.preview = NamedTemporaryFile(dir=str(settings.TEMP_DIR))
             self.preview.close()
             ffmpeg = FFmpeg(
                 inputs={self.video.name: ['-ss', str(round(self.length / 2, 2))]},
-                outputs={self.preview.name: ['-f', 'mjpeg', '-vframes', '1', '-s']},
+                outputs={self.preview.name: ['-f', 'mjpeg', '-vframes', '1']},
             )
             ffmpeg.run()
-            self.preview = open(self.preview.name, 'rb')
+            raw = open(self.preview.name, 'rb')
+            self.preview = self.crop(raw, '600x350')
