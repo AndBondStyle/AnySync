@@ -59,7 +59,7 @@ class ResetView(FormView):
 
     def form_valid(self, form):
         email = form.cleaned_data['email']
-        Confirmation.create(self.request, form.user, Confirmation.TYPES.ACTIVATE)
+        Confirmation.create(self.request, form.user, Confirmation.TYPES.RESET)
         messages.success(self.request, 'Password reset link sent to %s' % email)
         return redirect('.')
 
