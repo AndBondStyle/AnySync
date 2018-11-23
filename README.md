@@ -1,26 +1,16 @@
-# anysync
+# AnySync
 
-## Project setup
+### Install
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Start development server
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Build for production
 ```
 npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
 ```
