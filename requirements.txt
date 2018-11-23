@@ -1,3 +1,0 @@
-# SPECIAL FOR HEROKU
-
--r config/requirements/pro.txt
