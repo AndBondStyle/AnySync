@@ -1,10 +1,15 @@
 module.exports = {
     outputDir: 'public',
-    baseUrl: '/',
+    baseUrl: undefined,
     assetsDir: 'static',
     runtimeCompiler: undefined,
     productionSourceMap: undefined,
     parallel: undefined,
+
+    configureWebpack(config) {
+        config.entry.app = './frontend/main.js'
+        config.resolve.alias['@'] = __dirname + '/frontend'
+    },
 
     css: {
         sourceMap: true
@@ -13,4 +18,4 @@ module.exports = {
     pwa: {
         name: 'AnySync'
     }
-};
+}
