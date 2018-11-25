@@ -1,17 +1,8 @@
 <template>
-    <div class="home">
-        <welcome message="Welcome" description="Description"/>
+    <div class="jumbotron">
+        <!--<img alt="Vue logo" src="@/assets/logo.png">-->
+        <h1 class="display-4">// TODO</h1>
+        <!--<p class="lead"></p>-->
+        <!--<p class="lead"><a class="btn btn-secondary" role="button">Button</a></p>-->
     </div>
 </template>
-
-<script>
-    // @ is an alias to /src
-    import Welcome from '@/components/Welcome.vue'
-
-    export default {
-        name: 'home',
-        components: {
-            Welcome
-        }
-    }
-</script>
