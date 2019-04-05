@@ -1,16 +1,3 @@
-# AnySync
+# \#TODO
 
-### Install
-```
-npm install
-```
-
-### Start development server
-```
-npm run serve
-```
-
-### Build for production
-```
-npm run build
-```
+Check out `experiments` branch
