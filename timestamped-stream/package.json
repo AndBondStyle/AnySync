@@ -1,0 +1,17 @@
+{
+  "name": "timestamped-stream",
+  "private": true,
+  "scripts": {
+    "serve": "parcel *.html --port 80",
+    "build": "parcel build *.html --out-dir public",
+    "start": "http-server --port $PORT --gzip"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "http-server": "^0.11.1",
+    "opus-stream-decoder": "^1.2.3",
+    "parcel-bundler": "^1.12.3",
+    "peerjs": "^0.3.24",
+    "sass": "^1.17.4"
+  }
+}
