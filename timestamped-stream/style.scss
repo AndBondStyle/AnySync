@@ -103,6 +103,25 @@ p {
   }
 }
 
+// BUTTONS
+
+.btn {
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: $border;
+  cursor: pointer;
+  user-select: none;
+
+  &.small {
+    font-size: 0.9em;
+    padding: 5px 10px;
+  }
+
+  &.active {
+    background: $primary;
+  }
+}
+
 // RANGE
 
 input[type=range] {
