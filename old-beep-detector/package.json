@@ -1,0 +1,23 @@
+{
+  "name": "old-beep-detector",
+  "private": true,
+  "scripts": {
+    "serve": "parcel *.html --port 80 --out-dir public",
+    "build": "parcel build *.html --out-dir public",
+    "start": "http-server --port $PORT --gzip"
+  },
+  "dependencies": {
+    "@vue/component-compiler-utils": "^2.6.0",
+    "app.vue": "^0.1.10",
+    "babel-polyfill": "^6.26.0",
+    "get-user-media-promise": "^1.1.4",
+    "http-server": "^0.11.1",
+    "microphone-stream": "^5.0.1",
+    "parcel-bundler": "^1.12.3",
+    "sass": "^1.17.4",
+    "spectrum-analyzer": "^1.2.2",
+    "vue": "^2.6.10",
+    "vue-hot-reload-api": "^2.3.3",
+    "vue-template-compiler": "^2.6.10"
+  }
+}
