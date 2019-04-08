@@ -87,6 +87,10 @@ hr {
   width: 100%;
 }
 
+.border {
+  border: $border;
+}
+
 // BUTTONS
 
 .btn {
@@ -103,6 +107,10 @@ hr {
 
   &.active {
     background: $primary;
+  }
+
+  &:hover {
+    outline: 1px solid $light;
   }
 }
 
@@ -137,7 +145,7 @@ input[type=range] {
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  height: 100%;
+  align-self: stretch;
   border: $border;
 
   p {

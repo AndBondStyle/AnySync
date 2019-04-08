@@ -1,39 +1,47 @@
+import Spectrum from 'spectrum-analyzer';
+import getUserMedia from "get-user-media-promise";
+
 export default class Detector {
-    constructor(context, source, config) {
+    constructor(context, stream) {
         this.context = context;
-        this.source = source;
-        this.config = config;
-        this.processor = context.createScriptProcessor(config.fftSize, 1, 1);
-        this.analyser = new AnalyserNode(context, {
-            fftSize: config.fftSize,
-            minDecibels: config.minVolume,
-            maxDecibels: config.maxVolume,
-            smoothingTimeConstant: 0,
-        });
-        this.fft = new Uint8Array(this.analyser.frequencyBinCount);
-        this.threshold = config.detVolume;
-        this.processor.onaudioprocess = this.process.bind(this);
-        this.source.connect(this.analyser);
-        this.source.connect(this.processor);
-        this.processor.connect(context.destination);
-        this.onchunk = () => null;
-
-        this.size = config.fftSize;
+        this.stream = stream;
     }
 
-    stop() {
-        this.source.disconnect(this.analyser);
-        this.source.disconnect(this.processor);
-        this.processor.disconnect(this.context.destination);
+    async record(duration) {
+        this.stream = await getUserMedia({audio: true});
+
+        let resolve = null;
+        let done = new Promise(r => resolve = r);
+        let recorder = new MediaRecorder(this.stream);
+        recorder.ondataavailable = e => resolve(e.data);
+        recorder.start();
+        setTimeout(() => recorder.stop(), duration);
+        let reader = new FileReader();
+        let promise = new Promise(r => reader.onloadend = () => r(reader.result));
+        reader.readAsArrayBuffer(await done);
+
+        this.stream.getTracks()[0].stop();
+        return await promise;
     }
 
-    process(event) {
-        this.analyser.getByteFrequencyData(this.fft);
-        let index = this.config.freqIndex;
-        let delta = this.config.fftNeighbours;
-        let neighbours = Array.prototype.slice.call(this.fft);
-        neighbours = neighbours.slice(index - delta, index + delta + 1).map(x => x / 255);
-        let value = neighbours.reduce((a, b) => a + b) / neighbours.length;
-        this.onchunk(value, neighbours);
+    async detect(data, config) {
+        const winsize = config.winsize || 1024;
+        const winstep = config.winstep || 32;
+        const index = config.index || 10;
+
+        let buffer = await this.context.decodeAudioData(data);
+        let signal = buffer.getChannelData(0);
+        console.log(buffer.length);
+        let spectrum = new Spectrum(winsize);
+        let levels = [];
+
+        for (let i = 0; i < signal.length - winsize; i += winstep) {
+            spectrum.appendData(signal.slice(i, i + winsize));
+            spectrum.recompute();
+            let value = spectrum.power[index];
+            levels.push(Math.log10(value));
+        }
+
+        return levels;
     }
 }
