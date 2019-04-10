@@ -61,9 +61,6 @@
                 </v-dbmeter>
             </div>
         </div>
-        <div class="flex-col">
-            <v-button>BEEP</v-button>
-        </div>
     </div>
 </template>
 

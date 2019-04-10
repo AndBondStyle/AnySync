@@ -44,6 +44,10 @@ p {
   margin-bottom: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 hr {
   margin-top: 0;
   border-bottom: $border;
@@ -85,6 +89,20 @@ hr {
 
 .full-width {
   width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.border {
+  border: $border;
+}
+
+.frame {
+  min-width: 500px;
+  padding: 10px;
+  border: $border;
 }
 
 // BUTTONS

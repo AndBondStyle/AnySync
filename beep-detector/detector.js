@@ -8,7 +8,7 @@ export default class Detector {
     }
 
     async record(duration) {
-        this.stream = await getUserMedia({audio: true});
+        // this.stream = await getUserMedia({audio: true});
 
         let resolve = null;
         let done = new Promise(r => resolve = r);
@@ -20,7 +20,7 @@ export default class Detector {
         let promise = new Promise(r => reader.onloadend = () => r(reader.result));
         reader.readAsArrayBuffer(await done);
 
-        this.stream.getTracks()[0].stop();
+        // this.stream.getTracks()[0].stop();
         return await promise;
     }
 
@@ -29,17 +29,19 @@ export default class Detector {
         const winstep = config.winstep || 32;
         const index = config.index || 10;
 
-        let buffer = await this.context.decodeAudioData(data);
+        let buffer = await this.context.decodeAudioData(data.slice());
         let signal = buffer.getChannelData(0);
-        console.log(buffer.length);
         let spectrum = new Spectrum(winsize);
         let levels = [];
+        let skip = true;
 
         for (let i = 0; i < signal.length - winsize; i += winstep) {
             spectrum.appendData(signal.slice(i, i + winsize));
             spectrum.recompute();
-            let value = spectrum.power[index];
-            levels.push(Math.log10(value));
+            let value = Math.log10(spectrum.power[index]);
+            if (skip && value === -Infinity) continue;
+            levels.push(value);
+            skip = false;
         }
 
         return levels;

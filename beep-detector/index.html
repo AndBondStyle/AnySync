@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Beep Detector Mini</title>
-    <link rel="stylesheet" href="style.scss">
+    <link rel="stylesheet" href="../style.scss">
 </head>
 <body>
 <div class="flex-col flex-center">
-    <canvas id="canvas" class="border" height="50" width="700"></canvas>
+    <div class="flex-row" id="timeline" style="display: none">
+        <canvas id="canvas" class="border" height="50" width="700"></canvas>
+        <div id="beep" class="btn active"></div>
+        <p id="beep-label"></p>
+    </div>
     <div class="flex-row">
         <div id="button" class="btn">ACTIVATE</div>
+        <div id="download" class="btn">DOWNLOAD</div>
         <div class="flex-fill"></div>
-        <p>THRESHOLD: <span id="label">0</span></p>
-        <input id="range" type="range" min="0" max="100" value="100">
+        <p>THRESHOLD: <span id="range-label">?</span></p>
+        <input id="range" type="range" min="0" max="200" value="100">
     </div>
 </div>
 <script src="main.js"></script>

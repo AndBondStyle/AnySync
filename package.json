@@ -1,0 +1,13 @@
+{
+  "name": "anysync-experiments",
+  "private": true,
+  "scripts": {
+    "serve": "parcel *.html --port 80 --out-dir public",
+    "build": "parcel build *.html --out-dir public",
+    "start": "http-server --port $PORT --gzip"
+  },
+  "dependencies": {
+    "http-server": "^0.11.1",
+    "parcel-bundler": "^1.12.3"
+  }
+}

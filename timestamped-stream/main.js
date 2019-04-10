@@ -23,6 +23,7 @@ let firstchunk = null; // First chunk retrieved from recorder (contains OPUS hea
 let decoder = null; // Custom OPUS decoder (chunked)
 
 async function init() {
+    btn.onclick = () => null;
     btn.innerText = 'STARTING...';
 
     console.log('Setting up peer connection A...');
@@ -49,13 +50,13 @@ async function init() {
         console.log('DECODED:', left, right, samplesDecoded);
     }
 
-    console.log('Setting up decoder...');
+    console.log('Setting up decoder (nope)...');
     // decoder = new OpusStreamDecoder({onDecode: v => {
     //     console.log('DECODED:', v);
     //     resolve(v);
     // }});
-    decoder = new OpusStreamDecoder({onDecode});
-    await decoder.ready;
+    // decoder = new OpusStreamDecoder({onDecode});
+    // await decoder.ready;
 
     console.log('Setting up recorder...');
     let recorder = new MediaRecorder(stream);
@@ -69,8 +70,10 @@ async function init() {
 
     console.log('Ready to broadcast');
     btn.innerText = 'BROADCAST';
+    btn.classList.add('active');
     btn.onclick = () => {
         console.log('Broadcasting...');
+        btn.innerText = 'BROADCASTING...';
         a.connection.send({blob: firstchunk, first: true});
         broadcast = true;
     };
@@ -105,15 +108,15 @@ async function recieveChunk(data) {
         promise = new Promise(r => resolve = r);
         let arr = new Uint8Array(data.blob);
         console.log(data, arr);
-        decoder.decode(arr);
+        // decoder.decode(arr);
         await promise; return;
     }
 
-    let buffer = await decode(data.blob);
+    // let buffer = await decode(data.blob);
     let source = context.createBufferSource();
     let start = context.currentTime + (data.timestamp - time()) / 1000;
-    console.log(context.currentTime, start);
-    source.buffer = buffer;
+    console.log('NOW:', context.currentTime, 'PLAY AT:', start);
+    // source.buffer = buffer;
     source.connect(context.destination);
     source.start(start);
     console.log('[B] Scheduled chunk with timestamp:', data.timestamp);
