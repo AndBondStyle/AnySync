@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css?family=Ubuntu+Mono');
+
+// VARIABLES
+
+$primary: #00838F;
+$light: #CDCFDE;
+$dark: #343539;
+$darker: #1D1E22;
+$border: 2px solid $light;
+
+// ESSENTIAL
+
+* {
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+*:focus {
+  outline: none;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: $darker;
+  color: $light;
+  font-family: "Ubuntu Mono", monospace;
+  font-size: 18pt;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+hr {
+  margin-top: 0;
+  border-bottom: $border;
+}
+
+// UTILS
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  & > *:not(:last-child) {
+    margin-right: 20px;
+  }
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+
+  & > *:not(:last-child) {
+    margin-bottom: 20px;
+  }
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-fill {
+  flex: 1;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.border {
+  border: $border;
+}
+
+.frame {
+  min-width: 500px;
+  padding: 10px;
+  border: $border;
+}
+
+// BUTTONS
+
+.btn {
+  padding: 10px 15px;
+  background: $dark;
+  border: $border;
+  cursor: pointer;
+  user-select: none;
+
+  &.small {
+    font-size: 0.9em;
+    padding: 5px 10px;
+  }
+
+  &.active {
+    background: $primary;
+  }
+
+  &:hover {
+    outline: 1px solid $light;
+  }
+}
+
+// RANGE
+
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+  min-width: 300px;
+
+  &::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    background: #cdcfde;
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    background: $dark;
+    border: $border;
+    cursor: pointer;
+    margin-top: -9px;
+  }
+}
+
+// DBMETER
+
+.dbmeter {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  align-self: stretch;
+  border: $border;
+
+  p {
+    text-align: center;
+    padding: 10px 15px;
+  }
+
+  .threshold {
+    position: absolute;
+    width: 100%;
+    border-top: 2px dashed $light;
+  }
+
+  .main-bar {
+    position: absolute;
+    z-index: -2;
+    width: 100%;
+    bottom: 0;
+    background: $primary;
+  }
+
+  .bars {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .bar {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
