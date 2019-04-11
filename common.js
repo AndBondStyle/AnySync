@@ -7,4 +7,4 @@ let integrations = () => [new Sentry.Integrations.Breadcrumbs()];
 let script = document.createElement('script');
 script.src = 'https://browser.sentry-cdn.com/5.0.7/bundle.min.js';
 script.onload = () => Sentry.init({dsn, integrations: integrations()});
-document.head.appendChild(script);
+document.head.prepend(script);
