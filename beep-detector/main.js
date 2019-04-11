@@ -32,7 +32,7 @@ let data = null;
 
 async function init() {
     context = new AudioContext();
-    stream = await getUserMedia({audio: true});
+    stream = await getUserMedia({audio: {noiseSuppression: false, echoCancellation: false}});
 
     config.beeper.frequency = (
         config.detector.index * context.sampleRate / config.detector.winsize
