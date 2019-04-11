@@ -9,7 +9,7 @@
     REFACTOR NEEDED
      */
 
-    import getUserMedia from 'getusermedia'
+    import getUserMedia from 'get-user-media-promise'
     // remove unused imports
 
     const BUFFER_SIZE = 1024
@@ -31,9 +31,7 @@
         mounted() {
             let instance = this  // can't be fixed without ugly constructs, e.g. .bind()
 
-            getUserMedia({audio: true}, function (err, stream) {
-                if (err) throw err
-
+            getUserMedia({audio: true}).then(function (stream) {
                 let AudioContext = window.AudioContext || window.webkitAudioContext
                 let ctx = new AudioContext()
 
