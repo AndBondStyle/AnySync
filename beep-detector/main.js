@@ -27,14 +27,12 @@ let stream = null;
 let detector = null;
 let beeper = null;
 let levels = null;
-let threshold = null;
+let threshold = -5;
 let data = null;
 
 async function init() {
     context = new AudioContext();
     stream = await getUserMedia({audio: true});
-    detector = new Detector(context, stream);
-    beeper = new Beeper(context);
 
     config.beeper.frequency = (
         config.detector.index * context.sampleRate / config.detector.winsize
@@ -48,6 +46,9 @@ async function init() {
     console.log('AUDIO CONTEXT SAMPLE RATE:', context.sampleRate, 'Hz');
     console.log('FINAL BEEPER CONFIG:', config.beeper);
     console.log('FINAL DETECTOR CONFIG:', config.detector);
+
+    detector = new Detector(context, stream, config.detector);
+    beeper = new Beeper(context);
 
     let width = config.beeper.duration / (config.detector.winstep / context.sampleRate * 1000);
     beepLabel.innerText = config.beeper.duration + ' ms';
@@ -67,7 +68,8 @@ async function probe() {
     let duration = config.detector.duration;
     beeper.beep(config.beeper);
     data = await detector.record(duration);
-    levels = await detector.detect(data, config.detector);
+    ({levels, threshold} = await detector.detect(data));
+    console.log('sos:', threshold);
     console.log('DETECTOR OUTPUT:', levels);
     update();
 
@@ -77,7 +79,7 @@ async function probe() {
 }
 
 function update() {
-    threshold = +range.value / 20 - 10;
+    // threshold = +range.value / 20 - 10;
     rangeLabel.innerText = threshold.toFixed(1);
     if (levels == null) return;
     let context = canvas.getContext('2d');
