@@ -22,12 +22,13 @@ export default class Detector {
     }
 
     async prepare() {
-        console.log('PREPARING MIC..');
+        console.log('[D] PREPARING...');
         this.stream = await getUserMedia({audio: this.config});
         this.recorder = new MediaRecorder(this.stream);
         let resolve = null;
         this.recorder.done = new Promise(r => resolve = r);
         this.recorder.ondataavailable = async e => {
+            console.debug('[D] RECORDING FINISHED')
             let reader = new FileReader();
             let promise = new Promise(r => reader.onloadend = () => r(reader.result));
             reader.readAsArrayBuffer(e.data);
@@ -37,7 +38,7 @@ export default class Detector {
     }
 
     schedule(count, start) {
-        if (count > this.freqs.length) console.error('TOO MANY DEVICES');
+        if (count > this.freqs.length) console.error('[D] TOO MANY DEVICES');
         count = Math.min(count, this.freqs.length);
         let duration = this.margins[0] + this.margins[1] + count * this.beepstep;
         let detfreqs = this.freqs.slice(0, count);
@@ -56,14 +57,14 @@ export default class Detector {
     }
 
     async sync(config) {
-        console.log('RECORDING...');
+        console.log('[D] RECORDING...');
         this.recorder.start();
         setTimeout(() => this.recorder.stop(), config.duration * 1000);
         this.beep(config.beepfreq, config.beeptime);
         let buffer = await this.recorder.done;
         let signal = buffer.getChannelData(0);
         let beeps = config.detfreqs.map(freq => this.analyze(signal, freq));
-        console.log('DETECTION RESULT:', beeps);
+        console.debug('[D] DETECTION RESULT:', beeps);
         this.stream.getAudioTracks().map(x => x.stop());
         return beeps;
     }
@@ -89,20 +90,20 @@ export default class Detector {
             spectrum.recompute();
             let left = Math.log10(spectrum.power[index] * (1 - mixratio));
             let right = Math.log10(spectrum.power[index + 1] * mixratio);
-            volume.push((left + right) / 2);
+            volume.push(left + right);
         }
 
         let threshold = this.binsearch(volume);
         let peaks = volume.map(x => x > threshold);
         let beep = this.extract(peaks);
-        // console.log('ANALYZE FREQ:', freq);
-        // console.log('THRESHOLD:', threshold);
-        // console.log('EXTRACTED BEEP:', beep);
+        console.debug('[D] ANALYZE FREQ:', freq);
+        console.debug('[D] THRESHOLD:', threshold);
+        console.debug('[D] EXTRACTED BEEP:', beep);
         return beep;
     }
 
     binsearch(volume) {
-        let left = -12;
+        let left = -20;
         let right = 0;
         while (right - left > 0.01) {
             let mid = left + (right - left) / 2;
@@ -137,8 +138,16 @@ export default class Detector {
             found = (first !== null) && (last !== null);
             prev = peaks[i];
         }
+        if (!found) return null;
         let error = Math.abs(this.peaksize - (last - first));
-        if (error > this.accuracy) return null;
-        return first * this.winstep / this.samplerate;
+        if (error > this.accuracy) {
+            console.debug('[D] FAILED TO EXTRACT BEEP DUE TO ACCURACY ERROR');
+            console.debug('[D] RISING EDGE:', first);
+            console.debug('[D] FALLING EDGE:', last);
+            console.debug('[D] PEAK WIDTH:', (last - first));
+            console.debug('[D] EXPECTED WIDTH:', this.peaksize);
+            return null;
+        }
+        return (first + last) / 2 * this.winstep / this.samplerate;
     }
 }

@@ -41,7 +41,7 @@ export default class Core {
     }
 
     async sync() {
-        console.log('SYNCING...');
+        console.log('[C] SYNCING...');
         let playing = this.player.playing;
         let start = this.time() + 2.0;
         let count = Object.keys(this.devices).length;
@@ -57,6 +57,7 @@ export default class Core {
             if (this.results.length === count) resolve();
             else setTimeout(resolve, 5000);
         };
+        console.log('[C] WAITING FOR RESULTS...');
         await promise;
         let results = this.results.slice();
         this.results = null;
@@ -64,10 +65,11 @@ export default class Core {
         let expected = configs.map(x => x.beeptime - first);
         await this.process(connections, results, expected);
         if (playing) this.start();
+        console.log('[C] SYNC FINISHED');
     }
 
     async process(connections, results, expected) {
-        console.log('PROCESSING RESULTS...');
+        console.log('[C] PROCESSING RESULTS...');
         let count = connections.length;
         let average = expected.map(_ => []);
         for (let result of results) {
@@ -83,11 +85,11 @@ export default class Core {
         average = average.map(x => x.reduce((a, b) => a + b, 0) / x.length);
         let latencies = average.map((x, i) => x - expected[i]);
 
-        console.log('COLLECTED SYNC RESULTS:', results);
-        console.log('EXPECTED RESULT:', expected);
-        console.log('AVERAGE RESULT:', average);
-        console.log('COMPUTED LATENCIES:', latencies);
-        console.log('VALID LATENCIES:', valid);
+        console.debug('[P] COLLECTED SYNC RESULTS:', results);
+        console.debug('[P] EXPECTED RESULT:', expected);
+        console.debug('[P] AVERAGE RESULT:', average);
+        console.debug('[P] COMPUTED LATENCIES:', latencies);
+        console.debug('[P] VALID LATENCIES:', valid);
 
         for (let i = 1; i < count; i++) {
             let conn = connections[i];
@@ -105,6 +107,7 @@ export default class Core {
     }
 
     async init() {
+        console.log('[C] INITIALIZING...');
         let lastid = Cookie.get('last-id');
         Cookie.set('last-id', this.peer.id);
         let party = QS.parse(location.search)['party'];
@@ -116,12 +119,16 @@ export default class Core {
     }
 
     async connect(party) {
+        console.log('[C] CONNECTING TO:', party);
         let resolve = null;
         let promise = new Promise(r => resolve = r);
         this.peer.once('error', () => resolve(false));
         let conn = this.peer.connect(party);
         conn.once('open', () => resolve(true));
-        if (!await promise) return false;
+        if (!await promise) {
+            console.log('[C] CONNECTION FAILED');
+            return false;
+        }
         this.leader = false;
         this.party = party;
         this.leaderconn = conn;
@@ -131,6 +138,7 @@ export default class Core {
     }
 
     async selfconnect() {
+        console.log('[C] CONNECTING TO SELF...');
         let conn = {
             fake: true,
             peer: this.peer.id,
@@ -145,7 +153,7 @@ export default class Core {
     }
 
     async onconnect(conn) {
-        console.log('CONNECT:', conn.peer);
+        console.log('[M] CONNECT:', conn.peer);
         if (conn.peer !== this.peer.id) this.leader = true;
         conn.on('close', () => this.ondisconnect(conn));
         await new Promise(resolve => conn.once('open', resolve));
@@ -160,7 +168,7 @@ export default class Core {
     }
 
     ondisconnect(conn) {
-        console.log('DISCONNECT:', conn.peer);
+        console.log('[M] DISCONNECT:', conn.peer);
         delete this.connections[conn.peer];
         delete this.devices[conn.peer];
         this.broadcast({event: 'devices', data: this.devices});
@@ -168,7 +176,6 @@ export default class Core {
     }
 
     onmessage(conn, message) {
-        console.log('[M] DISPATCHING EVENT:', message.event);
         let event = message.event;
         let data = message.data;
 
@@ -196,7 +203,7 @@ export default class Core {
             let callback = async () => {
                 if (this.player.playing) this.player.stop();
                 let result = await this.detector.sync(data.config);
-                console.log('SENDING RESULT TO LEADER...');
+                console.log('[C] SENDING RESULT TO LEADER...');
                 this.leaderconn.send({event: 'sync-result', data: result});
             };
             setTimeout(callback, (data.start - this.time()) * 1000);
