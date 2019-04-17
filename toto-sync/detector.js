@@ -10,7 +10,7 @@ export default class Detector {
 
         this.samplerate = this.context.sampleRate;
         this.freqs = [843, 937, 1031, 1125];
-        this.margin = 500 / 1000;
+        this.margins = [500 / 1000, 1000 / 1000];
         this.beeplen = 50 / 1000;
         this.beepstep = 100 / 1000;
         this.winsize = 1024;
@@ -39,9 +39,9 @@ export default class Detector {
     schedule(count, start) {
         if (count > this.freqs.length) console.error('TOO MANY DEVICES');
         count = Math.min(count, this.freqs.length);
-        let duration = this.margin * 2 + count * this.beepstep;
+        let duration = this.margins[0] + this.margins[1] + count * this.beepstep;
         let detfreqs = this.freqs.slice(0, count);
-        let time = start + this.margin;
+        let time = start + this.margins[0];
         let configs = [];
         for (let i = 0; i < count; i++) {
             configs.push({
