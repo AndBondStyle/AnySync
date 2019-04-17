@@ -5,7 +5,7 @@ export default class Player {
     constructor(context, time) {
         this.context = context;
         this.latency = 0;
-        this.time = () => time() - this.latency;
+        this.time = () => time() + this.latency;
         this.playing = false;
         this.buffer = null;
         this.duration = null;
