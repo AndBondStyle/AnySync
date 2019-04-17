@@ -1,5 +1,5 @@
 {
-  "name": "anysync-experiments",
+  "name": "toto-sync",
   "private": true,
   "scripts": {
     "serve": "parcel *.html --port 80 --out-dir public",
@@ -8,23 +8,19 @@
   },
   "dependencies": {
     "@vue/component-compiler-utils": "^2.6.0",
+    "audio-context": "^1.0.3",
     "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
+    "clipboard-copy": "^3.0.0",
     "get-user-media-promise": "^1.1.4",
     "http-server": "^0.11.1",
-    "microphone-stream": "^5.0.1",
-    "opus-stream-decoder": "^1.2.3",
+    "js-cookie": "^2.2.0",
     "parcel-bundler": "^1.12.3",
-    "parcel-plugin-compress": "^1.0.9",
-    "peerjs": "^0.3.24",
+    "peerjs": "^1.0.0",
     "sass": "^1.17.4",
     "spectrum-analyzer": "^1.2.2",
     "vue": "^2.6.10",
     "vue-hot-reload-api": "^2.3.3",
-    "vue-template-compiler": "^2.6.10",
-    "query-string": "^6.4.2",
-    "audio-context": "^1.0.3",
-    "clipboard-copy": "^3.0.0",
-    "js-cookie": "^2.2.0"
+    "vue-template-compiler": "^2.6.10"
   }
 }

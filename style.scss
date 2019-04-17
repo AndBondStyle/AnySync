@@ -3,6 +3,7 @@
 // VARIABLES
 
 $primary: #00838F;
+$danger: #8c2b2b;
 $light: #CDCFDE;
 $dark: #343539;
 $darker: #1D1E22;
@@ -95,6 +96,10 @@ hr {
   text-align: center;
 }
 
+.text-big {
+  font-size: 1.5em;
+}
+
 .border {
   border: $border;
 }
@@ -121,6 +126,10 @@ hr {
 
   &.active {
     background: $primary;
+  }
+
+  &.danger {
+    background: $danger;
   }
 
   &:hover {
