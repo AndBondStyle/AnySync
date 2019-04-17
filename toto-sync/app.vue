@@ -1,7 +1,8 @@
 <template>
-    <div class="flex-col text-center">
+    <div class="flex-fill flex-col text-center">
+        <div class="flex-fill"></div>
         <p class="text-big">===== TOTO SYNC v2 =====</p>
-        <div class="btn" :class="{active: !initialised}" @click="callback">
+        <div class="btn" :class="{ active: !initialised }" @click="callback">
             <span v-if="!initialised"><<< ACTIVATE >>></span>
             <span v-else-if="party == null">CONNECTING...</span>
             <span v-else-if="!copying">PARTY ID: {{ party }}</span>
@@ -11,18 +12,21 @@
             <div v-if="!syncing" class="btn flex-fill" @click="toggle">
                 {{ playing ? 'STOP' : 'START' }}
             </div>
-            <div class="btn flex-fill" @click="sync">
+            <div class="btn flex-fill" @click="sync" :class="{ fake: syncing }">
                 {{ syncing ? 'SYNCING...' : 'SYNC' }}
             </div>
         </div>
-        <div class="btn" :class="{active: devices.length > 1}">
+        <div class="btn fake" :class="{active: devices.length > 1}">
             CONNECTED DEVICES: {{ devices.length }}
         </div>
-        <div class="btn flex-row" v-for="device in devices">
+        <div class="btn fake flex-row" v-for="device in devices">
             <p>{{ device.id }}</p>
             <p class="flex-fill">{{ device.latency !== null ? device.latency : '?' }} ms</p>
             <p>{{ ['ERR', 'NEW', 'OK'][device.status + 1] }}</p>
         </div>
+        <div class="flex-fill"></div>
+        <a @click="feedback">FEEDBACK</a>
+        <div></div>
     </div>
 </template>
 
@@ -41,6 +45,7 @@
                 syncing: false,
                 copying: false,
                 callback: this.activate,
+                feedback: () => window.feedback(),
             }
         },
         methods: {

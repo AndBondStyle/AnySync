@@ -6,5 +6,12 @@ let dsn = 'https://8684d9c305bb42d382df3e9a5b4fb648@sentry.io/273014';
 let integrations = () => [new Sentry.Integrations.Breadcrumbs()];
 let script = document.createElement('script');
 script.src = 'https://browser.sentry-cdn.com/5.0.7/bundle.min.js';
-script.onload = () => Sentry.init({dsn, integrations: integrations()});
+script.onload = () => {
+    Sentry.init({dsn, integrations: integrations()});
+    window.feedback = () => {
+        let eventId = Sentry.captureMessage('Feedback');
+        let config = {eventId, user: {name: 'whatever', email: 'whatever@example.com'}};
+        Sentry.showReportDialog(config);
+    }
+}
 document.head.prepend(script);

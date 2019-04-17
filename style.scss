@@ -47,6 +47,7 @@ p {
 
 a {
   text-decoration: none;
+  cursor: pointer;
 }
 
 hr {
@@ -116,8 +117,11 @@ hr {
   padding: 10px 15px;
   background: $dark;
   border: $border;
-  cursor: pointer;
   user-select: none;
+
+  &:not(.fake) {
+    cursor: pointer;
+  }
 
   &.small {
     font-size: 0.9em;
@@ -132,7 +136,7 @@ hr {
     background: $danger;
   }
 
-  &:hover {
+  &:not(.fake):hover {
     outline: 1px solid $light;
   }
 }
