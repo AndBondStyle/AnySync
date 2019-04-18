@@ -63,7 +63,7 @@ export default class Core {
         this.results = null;
         let first = configs[0].beeptime;
         let expected = configs.map(x => x.beeptime - first);
-        await this.process(connections, results, expected);
+        this.process(connections, results, expected);
         if (playing) this.start();
         console.log('[C] SYNC FINISHED');
     }
@@ -120,14 +120,13 @@ export default class Core {
             average[i] = average[i - 1] + diff[i - 1].sum / diff[i - 1].count;
         }
         return average;
-    }    
+    }
 
-    async process(connections, results, expected) {
+    process(connections, results, expected) {
         console.log('[C] PROCESSING RESULTS...');
-        let count = connections.length;
+        let count = expected.length;
         let average = expected.map(_ => []);
         for (let result of results) {
-            // TODO: MORE FLEXIBLE LOGIC
             let first = result[0];
             if (first === null) continue;
             for (let i = 1; i < count; i++) {
@@ -135,8 +134,24 @@ export default class Core {
                 average[i].push(result[i] - first);
             }
         }
-        let valid = average.map((x, i) => x.length ? i : -1).filter(x => x >= 0);
+        let missing = average.map((x, i) => x.length ? 0 : i).filter(x => x !== 0);
+        console.debug('[P] FIRST ITERATION RAW AVERAGE:', average.slice());
         average = average.map(x => x.reduce((a, b) => a + b, 0) / x.length);
+        console.debug('[P] FIRST ITERATION AVERAGE:', average.slice());
+        missing.map(x => average[x] = []);
+        for (let result of results) {
+            for (let i of missing) {
+                if (result[i] === null) continue;
+                for (let j = 0; j < count; j++) {
+                    if (missing.indexOf(j) !== -1 || result[j] === null) continue;
+                    average[i].push(average[j] - (result[j] - result[i]));
+                }
+            }
+        }
+        console.debug('[P] SECOND ITERATION RAW AVERAGE:', average.slice());
+        missing.map(x => average[x] = average[x].reduce((a, b) => a + b, 0) / average[x].length);
+        console.debug('[P] SECOND ITERATION AVERAGE:', average.slice());
+        let valid = average.map((x, i) => isFinite(x) ? i : 0).filter(x => x !== 0);
         let latencies = average.map((x, i) => x - expected[i]);
 
         console.debug('[P] COLLECTED SYNC RESULTS:', results);
@@ -147,20 +162,24 @@ export default class Core {
 
         for (let i = 1; i < count; i++) {
             let conn = connections[i];
+            let device = this.devices[conn.peer];
+            if (!device) continue;
             if (valid.indexOf(i) === -1) {
-                this.devices[conn.peer].latency = null;
-                this.devices[conn.peer].status = -1;
+                device.latency = null;
+                device.status = -1;
                 continue;
             }
             conn.send({event: 'latency', data: latencies[i]});
             if (this.player.playing) conn.send({event: 'start'});
-            this.devices[conn.peer].latency = Math.round(latencies[i] * 1000);
-            this.devices[conn.peer].status = 1;
+            device.latency = Math.round(latencies[i] * 1000);
+            device.status = 1;
+            console.log('SENDING LATENCY #', i, '=', device.latency, 'TO PEER ID', conn.peer);
         }
         this.broadcast({event: 'devices', data: this.devices});
     }
 
     async init() {
+        // TODO: VERBOSE CONNECTION STATUS (UI)
         console.log('[C] INITIALIZING...');
         let lastid = Cookie.get('last-id');
         Cookie.set('last-id', this.peer.id);
