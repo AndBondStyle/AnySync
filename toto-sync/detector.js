@@ -9,13 +9,13 @@ export default class Detector {
         this.oscillator = null;
 
         this.samplerate = this.context.sampleRate;
-        this.freqs = [843, 937, 1031, 1125];
         this.margins = [500 / 1000, 1000 / 1000];
         this.beeplen = 50 / 1000;
         this.beepstep = 100 / 1000;
         this.winsize = 1024;
         this.winstep = 32;
         this.accuracy = 10;
+        this.freqs = [24, 28, 32, 36, 40, 44, 48].map(x => x * this.samplerate / this.winsize);
         this.peaksize = this.beeplen * this.samplerate / this.winstep;
         this.config = {noiseSuppression: false, echoCancellation: false};
         getUserMedia({audio: this.config}).then(s => s.getAudioTracks().map(x => x.stop()));
@@ -88,8 +88,8 @@ export default class Detector {
         for (let i = 0; i < signal.length - this.winsize; i += this.winstep) {
             spectrum.appendData(signal.slice(i, i + this.winsize));
             spectrum.recompute();
-            let left = Math.log10(spectrum.power[index] * (1 - mixratio));
-            let right = Math.log10(spectrum.power[index + 1] * mixratio);
+            let left = Math.log10(spectrum.power[index]) * (1 - mixratio);
+            let right = Math.log10(spectrum.power[index + 1]) * mixratio;
             volume.push(left + right);
         }
 
