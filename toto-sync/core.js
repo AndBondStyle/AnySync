@@ -68,6 +68,60 @@ export default class Core {
         console.log('[C] SYNC FINISHED');
     }
 
+    average_results(results) {
+        let diff = [];
+        for (let i = 1; i < results.length; i++) {
+            diff.push({sum: 0, count: 0});
+        }
+        // calculate parts for average results using only results neighbors
+        for (let result of results) {
+            for (let i = 1; i < result.length; i++) {
+                if (result[i] !== null && result[i - 1] !== null) {
+                    diff[i - 1].sum += result[i] - result[i - 1];
+                    diff[i - 1].count++;
+                }
+            }
+        }
+        let null_diff_check = () => {
+            for (let part of diff) {
+                if (part.count === 0) {
+                    return true;
+                }
+            }
+            return false
+        }
+        // check if there exists an unknown part (with zero count)
+        if (null_diff_check()) {
+            // attempt to extrapolate unknown parts by using long parts (non-null results with by nulls in between)
+            for (let result of results) {
+                let j = 0;
+                while (j < result.length && result[j] === null) j++;
+                for (let i = 0; i < result.length; i++) {
+                    if (result[i] !== null) {
+                        let part_count = i - j;
+                        if (part_count > 1) {
+                            for (let k = 0; k < part_count; ++k) {
+                                diff[j + k].sum += (result[i] - result[j]) / part_count;
+                                diff[j + k].count++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // check if there still exists an unknown part
+        if (null_diff_check()) {
+            // there's nothing could be done, there's not enough data
+            return null;
+        }
+        // calculate average results
+        let average = [0];
+        for (let i = 1; i < results.length; i++) {
+            average[i] = average[i - 1] + diff[i - 1].sum / diff[i - 1].count;
+        }
+        return average;
+    }    
+
     async process(connections, results, expected) {
         console.log('[C] PROCESSING RESULTS...');
         let count = connections.length;
