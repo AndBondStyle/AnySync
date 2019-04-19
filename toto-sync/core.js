@@ -20,7 +20,7 @@ export default class Core {
         this.delay = 5;
 
         this.broadcast = data => Object.values(this.connections).map(x => x.send(data));
-        this.time = () => this.context.currentTime + this.timediff;
+        this.time = () => new Date().getTime() / 1000 + this.timediff;
         this.stop = () => this.broadcast({event: 'stop'});
         this.start = () => {
             Object.values(this.connections).map(conn => {
@@ -52,11 +52,14 @@ export default class Core {
         let recorders = devices.length - targets.length + 1;
         configs.map(x => x.start = start);
         configs[0].record = true;
+        let baseconfig = Object.assign({}, configs[0]);
+        baseconfig.beep = false;
+        baseconfig.record = true;
         for (let i in devices) {
             let device = devices[i];
             let conn = this.connections[device.id];
             if (targets.includes(device)) conn.send({event: 'sync', data: configs[i]});
-            else conn.send({event: 'sync', data: {beep: false, record: true, start: start}});
+            else conn.send({event: 'sync', data: baseconfig});
         }
         let connections = targets.map(x => this.connections[x.id]);
         let resolve = null;
@@ -73,20 +76,6 @@ export default class Core {
         let first = configs[0].beeptime;
         let expected = configs.map(x => x.beeptime - first);
         this.process(connections, results, expected);
-
-        for (let i = 0; i < devices.length; i++) {
-            if (i >= results.length) results.push([]);
-            for (let j = 0; j < devices.length; j++) {
-                if (j >= results[i].length) results[i].push(null);
-            }
-        }
-
-        try {
-            console.log('NEW AVERAGE RESULT:', this.average(results))
-        } catch (e) {
-            console.error(e);
-        }
-
         if (playing) this.start();
         console.log('[C] SYNC FINISHED');
     }
@@ -290,6 +279,7 @@ export default class Core {
             console.log('[M] SYNC RESULT:', data);
         }
         if (!this.leader && event === 'time-sync') {
+            // TODO: FIX
             this.timediff = data.timestamp - this.time();
             console.log('[M] TIMEDIFF:', this.timediff);
         }
@@ -303,7 +293,6 @@ export default class Core {
         if ((!this.leader || conn.fake) && event === 'stop') this.player.stop();
         if ((!this.leader || conn.fake) && event === 'sync') {
             console.log('[M] SYNC:', data);
-            data.beeptime -= this.timediff;
             if (data.record) this.detector.prepare();
             let callback = async () => {
                 if (this.player.playing) this.player.stop();

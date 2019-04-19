@@ -2,8 +2,9 @@ import getUserMedia from 'get-user-media-promise';
 import Spectrum from 'spectrum-analyzer';
 
 export default class Detector {
-    constructor(context) {
+    constructor(context, time) {
         this.context = context;
+        this.time = time;
         this.stream = null;
         this.recorder = null;
         this.oscillator = null;
@@ -18,16 +19,25 @@ export default class Detector {
         this.freqs = [24, 28, 32, 36, 40, 44, 48].map(x => x * this.samplerate / this.winsize);
         this.peaksize = this.beeplen * this.samplerate / this.winstep;
         this.config = {noiseSuppression: false, echoCancellation: false};
-        getUserMedia({audio: this.config}).then(s => s.getAudioTracks().map(x => x.stop()));
+        try { getUserMedia({audio: this.config}).then(s => s.getAudioTracks().map(x => x.stop())); }
+        catch (err) { console.warn('[D] INITIAL MIC REQUEST FAILED:', err) }
     }
 
     async prepare() {
         console.log('[D] PREPARING...');
-        this.stream = await getUserMedia({audio: this.config});
+        try {
+            console.debug('[D] REQUESTING MIC AT:', new Date().getTime());
+            this.stream = await getUserMedia({audio: this.config});
+            console.debug('[D] ACQUIRED MIC AT:', new Date().getTime());
+        } catch (err) {
+            console.warn('[D] FAILED TO ACQUIRE MIC:', err);
+            return;
+        }
         this.recorder = new MediaRecorder(this.stream);
         let resolve = null;
         this.recorder.done = new Promise(r => resolve = r);
         this.recorder.ondataavailable = async e => {
+            console.debug('[!!!] ACTUALLY STOPPED AT:', new Date().getTime());
             console.debug('[D] RECORDING FINISHED');
             console.debug('[D] RECORDED DATA:', e);
             let reader = new FileReader();
@@ -37,6 +47,9 @@ export default class Detector {
             console.debug('[D] READER DATA:', data);
             let buffer = await this.context.decodeAudioData(data);
             console.debug('[D] BUFFER:', buffer);
+            let silence = buffer.getChannelData(0).findIndex(x => x !== 0);
+            console.debug('[D] LENGTH OF INITIAL SILENCE:', silence);
+            this.recorder = null;
             resolve(buffer);
         }
     }
@@ -65,10 +78,15 @@ export default class Detector {
     async sync(config) {
         console.log('[D] SYNCING...');
         if (config.beep) this.beep(config.beepfreq, config.beeptime);
-        if (!config.record) return null;
+        if (!config.record || !this.recorder) return null;
         console.log('[D] RECORDING...');
+        console.debug('[!!!] STARTING RECORDER AT:', new Date().getTime());
         this.recorder.start();
-        setTimeout(() => this.recorder.stop(), config.duration * 1000);
+        setTimeout(() => {
+            console.debug('[!!!] STOPPING RECORDER AT:', new Date().getTime());
+            this.recorder.stop()
+        }, config.duration * 1000
+        );
         let buffer = await this.recorder.done;
         let signal = buffer.getChannelData(0);
         let beeps = config.detfreqs.map(freq => this.analyze(signal, freq));
@@ -82,8 +100,10 @@ export default class Detector {
         this.oscillator.connect(this.context.destination);
         this.oscillator.frequency.setValueAtTime(freq, 0);
         this.oscillator.type = 'sine';
-        this.oscillator.start(time);
-        this.oscillator.stop(time + this.beeplen);
+        console.log('[D] SECONDS BEFORE BEEP:', time - this.time());
+        let start = this.context.currentTime + time - this.time();
+        this.oscillator.start(start);
+        this.oscillator.stop(start + this.beeplen);
     }
 
     analyze(signal, freq) {
@@ -135,6 +155,7 @@ export default class Detector {
     }
 
     extract(peaks) {
+        console.log(peaks);
         let first = null;
         let last = null;
         let found = false;
@@ -142,7 +163,7 @@ export default class Detector {
         peaks.push(false);
         for (let i = 0; i < peaks.length; i++) {
             if (found && peaks[i]) console.debug('[D] FOUND EXTRA PEAK (!!!)');
-            if (!prev && peaks[i]) first = i;
+            if (!found && !prev && peaks[i]) first = i;
             if (prev && !peaks[i]) last = i;
             found = (first !== null) && (last !== null);
             prev = peaks[i];

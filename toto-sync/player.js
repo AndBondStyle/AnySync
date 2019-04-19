@@ -54,7 +54,7 @@ export default class Player {
         for (let i of [0, 1]) {
             if (this.nodes[i] === null) break;
             // COMMENT NEXT LINE TO ENABLE BASSBOOST
-            // this.nodes[i].disconnect(this.gain);
+            this.nodes[i].disconnect(this.gain);
             this.nodes[i].onended = null;
         }
     }
