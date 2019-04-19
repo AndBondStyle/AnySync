@@ -9,6 +9,7 @@ export default class Core {
     constructor(parent) {
         this.parent = parent;
         this.party = null;
+        this.index = 0;
         this.leader = true;
         this.leaderconn = null;
         this.devices = {};
@@ -44,17 +45,24 @@ export default class Core {
         console.log('[C] SYNCING...');
         let playing = this.player.playing;
         let start = this.time() + 2.0;
-        let count = Object.keys(this.devices).length;
-        let configs = this.detector.schedule(count, start);
-        let connections = Object.values(this.connections);
-        connections.map((conn, i) => conn.send({
-            event: 'sync', data: {config: configs[i], start: start}
-        }));
+        let devices = Object.values(this.devices);
+        let targets = devices.filter(x => x.id === this.peer.id || x.status !== 1);
+        let configs = this.detector.schedule(targets.length, start);
+        let recorders = devices.length - targets.length + 1;
+        configs.map(x => x.start = start);
+        configs[0].record = true;
+        for (let i in devices) {
+            let device = devices[i];
+            let conn = this.connections[device.id];
+            if (targets.includes(device)) conn.send({event: 'sync', data: configs[i]});
+            else conn.send({event: 'sync', data: {beep: false, record: true}});
+        }
+        let connections = targets.map(x => this.connections[x.id]);
         let resolve = null;
         let promise = new Promise(r => resolve = r);
         this.results = [];
         this.results.check = () => {
-            if (this.results.length === count) resolve();
+            if (this.results.length === recorders) resolve();
             else setTimeout(resolve, 5000);
         };
         console.log('[C] WAITING FOR RESULTS...');
@@ -64,18 +72,20 @@ export default class Core {
         let first = configs[0].beeptime;
         let expected = configs.map(x => x.beeptime - first);
         this.process(connections, results, expected);
+        for (let i = 0; i < results[0].length - results.length; i++) results.push(results[0].map(() => null)); // fix me
+        console.log('NEW AVERAGE RESULT:', this.average(results));
         if (playing) this.start();
         console.log('[C] SYNC FINISHED');
     }
 
-    average_results(results) {
+    average(results) {
         let diff = [];
         for (let i = 1; i < results.length; i++) {
             diff.push({sum: 0, count: 0});
         }
         // calculate parts for average results using only results neighbors
         for (let result of results) {
-            for (let i = 1; i < result.length; i++) {
+            for (let i = 1; i < results.length; i++) {
                 if (result[i] !== null && result[i - 1] !== null) {
                     diff[i - 1].sum += result[i] - result[i - 1];
                     diff[i - 1].count++;
@@ -180,13 +190,12 @@ export default class Core {
             if (this.player.playing) conn.send({event: 'start'});
             device.latency = Math.round(latencies[i] * 1000);
             device.status = 1;
-            console.log('SENDING LATENCY', i, ':', device.latency, 'MS TO PEER ID:', conn.peer);
+            console.log('SENDING LATENCY #', i, ':', device.latency, 'MS TO PEER ID:', conn.peer);
         }
         this.broadcast({event: 'devices', data: this.devices});
     }
 
     async init() {
-        // TODO: VERBOSE CONNECTION STATUS (UI)
         console.log('[C] INITIALIZING...');
         let lastid = Cookie.get('last-id');
         Cookie.set('last-id', this.peer.id);
@@ -207,6 +216,7 @@ export default class Core {
         conn.once('open', () => resolve(true));
         if (!await promise) {
             console.log('[C] CONNECTION FAILED');
+            this.parent.update();
             return false;
         }
         this.leader = false;
@@ -270,6 +280,7 @@ export default class Core {
             console.log('[M] TIMEDIFF:', this.timediff);
         }
         if (!this.leader && event === 'devices') {
+            this.index = Object.values(data).findIndex(x => x.id === this.peer.id);
             this.devices = data;
             console.log('[M] DEVICES:', data);
         }
@@ -278,11 +289,12 @@ export default class Core {
         if ((!this.leader || conn.fake) && event === 'stop') this.player.stop();
         if ((!this.leader || conn.fake) && event === 'sync') {
             console.log('[M] SYNC:', data);
-            data.config.beeptime -= this.timediff;
-            this.detector.prepare();
+            data.beeptime -= this.timediff;
+            if (data.record) this.detector.prepare();
             let callback = async () => {
                 if (this.player.playing) this.player.stop();
-                let result = await this.detector.sync(data.config);
+                let result = await this.detector.sync(data);
+                if (result === null) return;
                 console.log('[C] SENDING RESULT TO LEADER...');
                 this.leaderconn.send({event: 'sync-result', data: result});
             };

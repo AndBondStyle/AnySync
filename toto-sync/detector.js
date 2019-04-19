@@ -46,6 +46,8 @@ export default class Detector {
         let configs = [];
         for (let i = 0; i < count; i++) {
             configs.push({
+                beep: true,
+                record: false,
                 beeptime: time,
                 beepfreq: this.freqs[i],
                 duration: duration,
@@ -57,10 +59,12 @@ export default class Detector {
     }
 
     async sync(config) {
+        console.log('[D] SYNCING...');
+        if (config.beep) this.beep(config.beepfreq, config.beeptime);
+        if (!config.record) return null;
         console.log('[D] RECORDING...');
         this.recorder.start();
         setTimeout(() => this.recorder.stop(), config.duration * 1000);
-        this.beep(config.beepfreq, config.beeptime);
         let buffer = await this.recorder.done;
         let signal = buffer.getChannelData(0);
         let beeps = config.detfreqs.map(freq => this.analyze(signal, freq));
@@ -130,9 +134,10 @@ export default class Detector {
         let first = null;
         let last = null;
         let found = false;
-        let prev = null;
+        let prev = false;
+        peaks.push(false);
         for (let i = 0; i < peaks.length; i++) {
-            if (found && peaks[i]) return null;
+            if (found && peaks[i]) console.debug('[D] FOUND EXTRA PEAK (!!!)');
             if (!prev && peaks[i]) first = i;
             if (prev && !peaks[i]) last = i;
             found = (first !== null) && (last !== null);
