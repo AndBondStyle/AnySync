@@ -55,10 +55,10 @@ export default class Core {
         let baseconfig = Object.assign({}, configs[0]);
         baseconfig.beep = false;
         baseconfig.record = true;
-        for (let i in devices) {
-            let device = devices[i];
+        let index = 0;
+        for (let device of devices) {
             let conn = this.connections[device.id];
-            if (targets.includes(device)) conn.send({event: 'sync', data: configs[i]});
+            if (targets.includes(device)) conn.send({event: 'sync', data: configs[index++]});
             else conn.send({event: 'sync', data: baseconfig});
         }
         let connections = targets.map(x => this.connections[x.id]);
