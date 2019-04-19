@@ -28,11 +28,15 @@ export default class Detector {
         let resolve = null;
         this.recorder.done = new Promise(r => resolve = r);
         this.recorder.ondataavailable = async e => {
-            console.debug('[D] RECORDING FINISHED')
+            console.debug('[D] RECORDING FINISHED');
+            console.debug('[D] RECORDED DATA:', e);
             let reader = new FileReader();
             let promise = new Promise(r => reader.onloadend = () => r(reader.result));
             reader.readAsArrayBuffer(e.data);
-            let buffer = await this.context.decodeAudioData(await promise);
+            let data = await promise;
+            console.debug('[D] READER DATA:', data);
+            let buffer = await this.context.decodeAudioData(data);
+            console.debug('[D] BUFFER:', buffer);
             resolve(buffer);
         }
     }

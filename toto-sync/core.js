@@ -17,6 +17,7 @@ export default class Core {
         this.results = null;
         this.timediff = 0;
         this.latency = 0;
+        this.delay = 5;
 
         this.broadcast = data => Object.values(this.connections).map(x => x.send(data));
         this.time = () => this.context.currentTime + this.timediff;
@@ -44,7 +45,7 @@ export default class Core {
     async sync() {
         console.log('[C] SYNCING...');
         let playing = this.player.playing;
-        let start = this.time() + 2.0;
+        let start = this.time() + this.delay;
         let devices = Object.values(this.devices);
         let targets = devices.filter(x => x.id === this.peer.id || x.status !== 1);
         let configs = this.detector.schedule(targets.length, start);
@@ -55,7 +56,7 @@ export default class Core {
             let device = devices[i];
             let conn = this.connections[device.id];
             if (targets.includes(device)) conn.send({event: 'sync', data: configs[i]});
-            else conn.send({event: 'sync', data: {beep: false, record: true}});
+            else conn.send({event: 'sync', data: {beep: false, record: true, start: start}});
         }
         let connections = targets.map(x => this.connections[x.id]);
         let resolve = null;
@@ -72,13 +73,26 @@ export default class Core {
         let first = configs[0].beeptime;
         let expected = configs.map(x => x.beeptime - first);
         this.process(connections, results, expected);
-        for (let i = 0; i < results[0].length - results.length; i++) results.push(results[0].map(() => null)); // fix me
-        console.log('NEW AVERAGE RESULT:', this.average(results));
+
+        for (let i = 0; i < devices.length; i++) {
+            if (i >= results.length) results.push([]);
+            for (let j = 0; j < devices.length; j++) {
+                if (j >= results[i].length) results[i].push(null);
+            }
+        }
+
+        try {
+            console.log('NEW AVERAGE RESULT:', this.average(results))
+        } catch (e) {
+            console.error(e);
+        }
+
         if (playing) this.start();
         console.log('[C] SYNC FINISHED');
     }
 
     average(results) {
+        console.log('RES ', results);
         let diff = [];
         for (let i = 1; i < results.length; i++) {
             diff.push({sum: 0, count: 0});
