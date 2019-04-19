@@ -124,8 +124,9 @@ export default class Core {
 
     process(connections, results, expected) {
         console.log('[C] PROCESSING RESULTS...');
+
         let count = expected.length;
-        let average = expected.map(_ => []);
+        let average = expected.map((_, i) => i === 0 ? [0] : []);
         for (let result of results) {
             let first = result[0];
             if (first === null) continue;
@@ -134,29 +135,35 @@ export default class Core {
                 average[i].push(result[i] - first);
             }
         }
-        let missing = average.map((x, i) => x.length ? 0 : i).filter(x => x !== 0);
-        console.debug('[P] FIRST ITERATION RAW AVERAGE:', average.slice());
-        average = average.map(x => x.reduce((a, b) => a + b, 0) / x.length);
-        console.debug('[P] FIRST ITERATION AVERAGE:', average.slice());
-        missing.map(x => average[x] = []);
-        for (let result of results) {
-            for (let i of missing) {
-                if (result[i] === null) continue;
-                for (let j = 0; j < count; j++) {
-                    if (missing.indexOf(j) !== -1 || result[j] === null) continue;
-                    average[i].push(average[j] - (result[j] - result[i]));
+
+        for (let iter = 0; true; iter++) {
+            average = average.map(x => x.length ? x.reduce((a, b) => a + b, 0) / x.length : null);
+            console.debug('[P] ITERATION', iter, 'AVERAGE:', average.slice());
+            let missing = average.map((x, i) => x !== null ? 0 : i).filter(x => x !== 0);
+            console.debug('[P] ITERATION', iter, 'MISSING INDEXES:', missing);
+            average = average.map((x, i) => missing.indexOf(i) === -1 ? [x] : []);
+
+            let updated = false;
+            for (let result of results) {
+                for (let i of missing) {
+                    if (result[i] === null) continue;
+                    for (let j = 0; j < count; j++) {
+                        if (missing.indexOf(j) !== -1 || result[j] === null) continue;
+                        average[i].push(average[j] - (result[j] - result[i]));
+                        updated = true;
+                    }
                 }
             }
+            if (!updated) break;
         }
-        console.debug('[P] SECOND ITERATION RAW AVERAGE:', average.slice());
-        missing.map(x => average[x] = average[x].reduce((a, b) => a + b, 0) / average[x].length);
-        console.debug('[P] SECOND ITERATION AVERAGE:', average.slice());
-        let valid = average.map((x, i) => isFinite(x) ? i : 0).filter(x => x !== 0);
-        let latencies = average.map((x, i) => x - expected[i]);
+
+        average = average.map(x => x.length ? x.reduce((a, b) => a + b, 0) / x.length : null);
+        let valid = average.map((x, i) => x !== null ? i : 0).filter(x => x !== 0);
+        let latencies = average.map((x, i) => x !== null ? x - expected[i] : null);
 
         console.debug('[P] COLLECTED SYNC RESULTS:', results);
+        console.debug('[P] FINAL AVERAGE RESULT:', average);
         console.debug('[P] EXPECTED RESULT:', expected);
-        console.debug('[P] AVERAGE RESULT:', average);
         console.debug('[P] COMPUTED LATENCIES:', latencies);
         console.debug('[P] VALID LATENCIES:', valid);
 
@@ -173,7 +180,7 @@ export default class Core {
             if (this.player.playing) conn.send({event: 'start'});
             device.latency = Math.round(latencies[i] * 1000);
             device.status = 1;
-            console.log('SENDING LATENCY #', i, '=', device.latency, 'TO PEER ID', conn.peer);
+            console.log('SENDING LATENCY', i, ':', device.latency, 'MS TO PEER ID:', conn.peer);
         }
         this.broadcast({event: 'devices', data: this.devices});
     }
