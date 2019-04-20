@@ -13,17 +13,26 @@
             <div v-if="!syncing" class="btn flex-fill" @click="toggle">
                 {{ playing ? 'STOP' : 'START' }}
             </div>
-            <div class="btn flex-fill" @click="sync" :class="{ fake: syncing }">
+            <div class="btn flex-fill" @click="sync" :class="{fake: syncing, danger: syncing}">
                 {{ syncing ? 'SYNCING...' : 'SYNC' }}
             </div>
         </div>
         <div class="btn fake" :class="{active: devices.length > 1}">
             CONNECTED DEVICES: {{ devices.length }}
         </div>
-        <div class="btn fake flex-row" v-for="(device, index) in devices">
-            <p>#{{ index }}</p>
-            <p class="flex-fill">{{ device.latency !== null ? device.latency : '?' }} ms</p>
-            <p>{{ ['ERR', 'NEW', 'OK'][device.status + 1] }}</p>
+        <div class="flex-row">
+            <div class="flex-col flex-fill">
+                <div class="flex-row" v-for="(device, index) in devices">
+                    <div class="btn fake">#{{ index }}</div>
+                    <div class="btn fake flex-fill">{{ device.latency !== null ? device.latency : '?' }} ms</div>
+                </div>
+            </div>
+            <div class="flex-col">
+                <div class="btn"  v-for="device in devices" @click="toggleState(device.id)"
+                     :class="{fake: !leader, active: device.status === 1, danger: device.status === -1}">
+                    {{ ['ERR', 'NEW', 'OK'][device.status + 1] }}
+                </div>
+            </div>
         </div>
         <div class="flex-fill"></div>
         <a @click="feedback">FEEDBACK</a>
@@ -85,7 +94,13 @@
                 this.syncing = true;
                 await this.core.sync();
                 this.syncing = false;
-            }
+            },
+            async toggleState(id) {
+                if (!this.leader || id === this.core.peer.id) return;
+                let device = this.core.devices[id];
+                device.status = device.status < 1 ? 1 : 0;
+                this.core.broadcast({event: 'devices', data: this.core.devices});
+            },
         },
     }
 </script>
