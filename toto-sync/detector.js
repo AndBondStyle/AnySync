@@ -10,7 +10,7 @@ export default class Detector {
         this.oscillator = null;
 
         this.samplerate = this.context.sampleRate;
-        this.margins = [500 / 1000, 1000 / 1000];
+        this.margins = [500 / 1000, 500 / 1000];
         this.beeplen = 50 / 1000;
         this.beepstep = 100 / 1000;
         this.winsize = 1024;
@@ -23,8 +23,34 @@ export default class Detector {
         catch (err) { console.warn('[D] INITIAL MIC REQUEST FAILED:', err) }
     }
 
-    async prepare() {
-        console.log('[D] PREPARING...');
+    schedule(count, start) {
+        if (count > this.freqs.length) console.error('[D] TOO MANY DEVICES');
+        count = Math.min(count, this.freqs.length);
+        let detfreqs = this.freqs.slice(0, count);
+        let time = start + this.margins[0];
+        let configs = [];
+        for (let i = 0; i < count; i++) {
+            configs.push({
+                start: start,
+                beep: true,
+                record: false,
+                beeptime: time,
+                beepfreq: this.freqs[i],
+                detfreqs: detfreqs,
+            });
+            time += this.beepstep;
+        }
+        configs.map(x => x.end = time + this.margins[1]);
+        return configs;
+    }
+
+    async prepare(config) {
+        console.log('[D] BEGIN PREPARING AT:', new Date().getTime());
+        if (!config.record) {
+            console.debug('[D] RECORDING NOT NEEDED');
+            console.log('[D] DONE PREPARING AT:', new Date().getTime());
+            return;
+        }
         try {
             console.debug('[D] REQUESTING MIC AT:', new Date().getTime());
             this.stream = await getUserMedia({audio: this.config});
@@ -37,71 +63,55 @@ export default class Detector {
         let resolve = null;
         this.recorder.done = new Promise(r => resolve = r);
         this.recorder.ondataavailable = async e => {
-            console.debug('[!!!] ACTUALLY STOPPED AT:', new Date().getTime());
+            console.debug('[D] ACTUALLY STOPPED AT:', new Date().getTime());
             console.debug('[D] RECORDING FINISHED');
             console.debug('[D] RECORDED DATA:', e);
             let reader = new FileReader();
             let promise = new Promise(r => reader.onloadend = () => r(reader.result));
             reader.readAsArrayBuffer(e.data);
             let data = await promise;
-            console.debug('[D] READER DATA:', data);
+            if (data.byteLength === 0) {
+                console.error('[!!!] GOT EMPTY RECORDING');
+                resolve(null);
+            }
             let buffer = await this.context.decodeAudioData(data);
-            console.debug('[D] BUFFER:', buffer);
             let silence = buffer.getChannelData(0).findIndex(x => x !== 0);
             console.debug('[D] LENGTH OF INITIAL SILENCE:', silence);
             this.recorder = null;
             resolve(buffer);
-        }
-    }
-
-    schedule(count, start) {
-        if (count > this.freqs.length) console.error('[D] TOO MANY DEVICES');
-        count = Math.min(count, this.freqs.length);
-        let duration = this.margins[0] + this.margins[1] + count * this.beepstep;
-        let detfreqs = this.freqs.slice(0, count);
-        let time = start + this.margins[0];
-        let configs = [];
-        for (let i = 0; i < count; i++) {
-            configs.push({
-                beep: true,
-                record: false,
-                beeptime: time,
-                beepfreq: this.freqs[i],
-                duration: duration,
-                detfreqs: detfreqs,
-            })
-            time += this.beepstep;
-        }
-        return configs;
+        };
+        console.log('[D] DONE PREPARING AT:', new Date().getTime());
     }
 
     async sync(config) {
-        console.log('[D] SYNCING...');
+        console.log('[D] BEGIN SYNCING AT:', new Date().getTime());
         if (config.beep) this.beep(config.beepfreq, config.beeptime);
         if (!config.record || !this.recorder) return null;
         console.log('[D] RECORDING...');
-        console.debug('[!!!] STARTING RECORDER AT:', new Date().getTime());
+        console.debug('[D] STARTING RECORDER AT:', new Date().getTime());
         this.recorder.start();
         setTimeout(() => {
-            console.debug('[!!!] STOPPING RECORDER AT:', new Date().getTime());
+            console.debug('[D] STOPPING RECORDER AT:', new Date().getTime());
             this.recorder.stop()
-        }, config.duration * 1000
-        );
+        }, (config.end - this.time()) * 1000);
         let buffer = await this.recorder.done;
+        if (buffer === null) return null;
         let signal = buffer.getChannelData(0);
         let beeps = config.detfreqs.map(freq => this.analyze(signal, freq));
-        console.debug('[D] DETECTION RESULT:', beeps);
         this.stream.getAudioTracks().map(x => x.stop());
         return beeps;
     }
 
     beep(freq, time) {
+        console.log('[D] SCHEDULING BEEP AT:', new Date().getTime());
         this.oscillator = this.context.createOscillator();
         this.oscillator.connect(this.context.destination);
         this.oscillator.frequency.setValueAtTime(freq, 0);
         this.oscillator.type = 'sine';
-        console.log('[D] SECONDS BEFORE BEEP:', time - this.time());
-        let start = this.context.currentTime + time - this.time();
+        let offset = time - this.time();
+        console.log('[D] SECONDS BEFORE BEEP:', offset);
+        if (offset < 0) console.error('[!!!] TOO LATE');
+        let start = this.context.currentTime + offset;
         this.oscillator.start(start);
         this.oscillator.stop(start + this.beeplen);
     }
@@ -155,14 +165,16 @@ export default class Detector {
     }
 
     extract(peaks) {
-        console.log(peaks);
         let first = null;
         let last = null;
         let found = false;
         let prev = false;
         peaks.push(false);
         for (let i = 0; i < peaks.length; i++) {
-            if (found && peaks[i]) console.debug('[D] FOUND EXTRA PEAK (!!!)');
+            if (found && peaks[i]) {
+                console.warn('[D] FOUND EXTRA PEAK');
+                return null;
+            }
             if (!found && !prev && peaks[i]) first = i;
             if (prev && !peaks[i]) last = i;
             found = (first !== null) && (last !== null);
