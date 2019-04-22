@@ -17,7 +17,7 @@ export default class Core {
         this.results = null;
         this.timediff = 0;
         this.latency = 0;
-        this.delay = 5;
+        this.delay = 1;
 
         this.broadcast = data => Object.values(this.connections).map(x => x.send(data));
         this.time = () => new Date().getTime() / 1000 + this.timediff;
@@ -43,14 +43,14 @@ export default class Core {
     }
 
     async sync() {
-        console.log('[C] SYNCING...');
         let playing = this.player.playing;
         let start = this.time() + this.delay;
         let devices = Object.values(this.devices);
         let targets = devices.filter(x => x.id === this.peer.id || x.status !== 1);
+        if (targets.length === 1) return;
+        console.log('[C] SYNCING...');
         let configs = this.detector.schedule(targets.length, start);
         let recorders = devices.length - targets.length + 1;
-        configs.map(x => x.start = start);
         configs[0].record = true;
         let baseconfig = Object.assign({}, configs[0]);
         baseconfig.beep = false;
@@ -102,7 +102,7 @@ export default class Core {
                 }
             }
             return false
-        }
+        };
         // check if there exists an unknown part (with zero count)
         if (null_diff_check()) {
             // attempt to extrapolate unknown parts by using long parts (non-null results with by nulls in between)
@@ -205,7 +205,7 @@ export default class Core {
         let party = QS.parse(location.search)['party'];
         if (party && party !== lastid) await this.connect(party);
         if (this.party == null) await this.selfconnect();
-        let query = '?' + QS.stringify({party: this.party})
+        let query = '?' + QS.stringify({party: this.party});
         history.replaceState(null, '', query);
         this.ready.resolve(this.party);
     }
@@ -293,15 +293,15 @@ export default class Core {
         if ((!this.leader || conn.fake) && event === 'stop') this.player.stop();
         if ((!this.leader || conn.fake) && event === 'sync') {
             console.log('[M] SYNC:', data);
-            if (data.record) this.detector.prepare();
             let callback = async () => {
                 if (this.player.playing) this.player.stop();
                 let result = await this.detector.sync(data);
+                console.debug('[C] DETECTION RESULT:', result);
                 if (result === null) return;
                 console.log('[C] SENDING RESULT TO LEADER...');
                 this.leaderconn.send({event: 'sync-result', data: result});
             };
-            setTimeout(callback, (data.start - this.time()) * 1000);
+            this.detector.prepare(data).then(callback);
         }
 
         this.parent.update();
