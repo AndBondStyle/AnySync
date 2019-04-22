@@ -66,6 +66,7 @@
 
 <script>
     import 'babel-polyfill';
+    import { AudioContext } from 'standardized-audio-context';
     import VButton from './components/v-button';
     import VButtonSwitch from './components/v-button-switch';
     import VSpinbox from './components/v-spinbox';

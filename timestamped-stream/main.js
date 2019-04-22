@@ -1,4 +1,5 @@
 import 'babel-polyfill';
+import { AudioContext } from 'standardized-audio-context';
 import axios from 'axios';
 import Peer from 'peerjs';
 

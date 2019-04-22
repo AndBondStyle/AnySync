@@ -1,6 +1,6 @@
 'use strict';
 import 'babel-polyfill';
-
+import { AudioContext } from 'standardized-audio-context';
 import getUserMedia from 'get-user-media-promise';
 import Detector from './detector';
 import Beeper from './beeper';

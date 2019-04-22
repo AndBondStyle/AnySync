@@ -10,7 +10,7 @@
      */
 
     import getUserMedia from 'get-user-media-promise'
-    // remove unused imports
+    import { AudioContext } from 'standardized-audio-context'
 
     const BUFFER_SIZE = 1024
 
@@ -32,7 +32,6 @@
             let instance = this  // can't be fixed without ugly constructs, e.g. .bind()
 
             getUserMedia({audio: true}).then(function (stream) {
-                let AudioContext = window.AudioContext || window.webkitAudioContext
                 let ctx = new AudioContext()
 
                 let source = ctx.createMediaStreamSource(stream)

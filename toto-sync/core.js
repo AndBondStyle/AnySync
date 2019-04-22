@@ -1,4 +1,4 @@
-import AudioContext from 'audio-context';
+import { AudioContext } from 'standardized-audio-context';
 import Cookie from 'js-cookie';
 import QS from 'query-string';
 import Peer from 'peerjs';
