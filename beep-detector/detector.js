@@ -75,6 +75,6 @@ export default class Detector {
             }
         }
 
-        return found_peaks.length >= 2;
+        return found_peaks.length >= 1; // TODO
     }
 }
