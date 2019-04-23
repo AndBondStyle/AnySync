@@ -171,10 +171,7 @@ export default class Detector {
         let prev = false;
         peaks.push(false);
         for (let i = 0; i < peaks.length; i++) {
-            if (found && peaks[i]) {
-                console.warn('[D] FOUND EXTRA PEAK');
-                return null;
-            }
+            if (found && peaks[i]) console.warn('[D] FOUND EXTRA PEAK');
             if (!found && !prev && peaks[i]) first = i;
             if (prev && !peaks[i]) last = i;
             found = (first !== null) && (last !== null);

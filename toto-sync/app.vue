@@ -7,7 +7,7 @@
             <span v-if="!peer">CONNECTING...</span>
             <span v-else-if="failed">CONNECTION FAILED</span>
             <span v-else-if="copying"><<< URL COPIED >>></span>
-            <span v-else>PARTY ID: {{ party }} {{ index !== null ? '#' + index : '' }}</span>
+            <span v-else>PARTY ID: {{ party }} #{{ index || 0 }}</span>
         </div>
         <div class="flex-row" v-if="party && leader">
             <div v-if="!syncing" class="btn flex-fill" @click="toggle">
@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="flex-col">
-                <div class="btn"  v-for="device in devices" @click="toggleState(device.id)"
+                <div class="btn" v-for="device in devices" @click="toggleState(device.id)"
                      :class="{fake: !leader, active: device.status === 1, danger: device.status === -1}">
                     {{ ['ERR', 'NEW', 'OK'][device.status + 1] }}
                 </div>

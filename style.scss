@@ -8,6 +8,7 @@ $light: #CDCFDE;
 $dark: #343539;
 $darker: #1D1E22;
 $border: 2px solid $light;
+$gutter: 20px;
 
 // ESSENTIAL
 
@@ -16,10 +17,10 @@ $border: 2px solid $light;
   font-family: inherit;
   font-size: inherit;
   color: inherit;
-}
 
-*:focus {
-  outline: none;
+  &:focus {
+    outline: none;
+  }
 }
 
 html, body {
@@ -33,6 +34,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: $gutter;
 
   background: $darker;
   color: $light;
@@ -50,11 +52,6 @@ a {
   cursor: pointer;
 }
 
-hr {
-  margin-top: 0;
-  border-bottom: $border;
-}
-
 // UTILS
 
 .flex-row {
@@ -63,7 +60,7 @@ hr {
   align-items: center;
 
   & > *:not(:last-child) {
-    margin-right: 20px;
+    margin-right: $gutter;
   }
 }
 
@@ -72,7 +69,7 @@ hr {
   flex-direction: column;
 
   & > *:not(:last-child) {
-    margin-bottom: 20px;
+    margin-bottom: $gutter;
   }
 }
 
@@ -105,12 +102,6 @@ hr {
   border: $border;
 }
 
-.frame {
-  min-width: 500px;
-  padding: 10px;
-  border: $border;
-}
-
 // BUTTONS
 
 .btn {
@@ -121,11 +112,6 @@ hr {
 
   &:not(.fake) {
     cursor: pointer;
-  }
-
-  &.small {
-    font-size: 0.9em;
-    padding: 5px 10px;
   }
 
   &.active {
