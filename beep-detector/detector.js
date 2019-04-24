@@ -1,57 +1,48 @@
 import Spectrum from 'spectrum-analyzer';
-import getUserMedia from "get-user-media-promise";
 
 export default class Detector {
-    constructor(context, stream, config) {
-        this.context = context;
-        this.stream = stream;
-        this.config = config;
+    constructor(samplerate, beeplen) {
+        this.samplerate = samplerate;
+        this.beeplen = beeplen;
+        this.export = null;
+
+        this.accuracy = 10;
+        this.winsize = 1024;
+        this.winstep = 32;
+        this.peaksize = this.beeplen * this.samplerate / this.winstep;
     }
 
-    async record(duration) {
-        let resolve = null;
-        let done = new Promise(r => resolve = r);
-        let recorder = new MediaRecorder(this.stream);
-        recorder.ondataavailable = e => resolve(e.data);
-        recorder.start();
-        setTimeout(() => recorder.stop(), duration);
-        let reader = new FileReader();
-        let promise = new Promise(r => reader.onloadend = () => r(reader.result));
-        reader.readAsArrayBuffer(await done);
-        return await promise;
-    }
+    detect(signal, freq) {
+        let spectrum = new Spectrum(this.winsize);
+        let realindex = freq * this.winsize / this.samplerate;
+        let index = Math.floor(realindex);
+        let mixratio = realindex - index;
+        let volume = [];
 
-    async detect(data) {
-        const winsize = this.config.winsize || 1024;
-        const winstep = this.config.winstep || 32;
-        const index = this.config.index || 10;
-
-        let buffer = await this.context.decodeAudioData(data.slice());
-        let signal = buffer.getChannelData(0);
-        let spectrum = new Spectrum(winsize);
-        let levels = [];
-        let skip = true;
-
-        for (let i = 0; i < signal.length - winsize; i += winstep) {
-            spectrum.appendData(signal.slice(i, i + winsize));
+        for (let i = 0; i < signal.length - this.winsize; i += this.winstep) {
+            spectrum.appendData(signal.slice(i, i + this.winsize));
             spectrum.recompute();
-            let value = Math.log10(spectrum.power[index]);
-            if (skip && value === -Infinity) continue;
-            levels.push(value);
-            skip = false;
+            let left = Math.log10(spectrum.power[index]) * (1 - mixratio);
+            let right = Math.log10(spectrum.power[index + 1]) * mixratio;
+            volume.push(left + right);
         }
 
-        let threshold = this.binsearch(levels);
-        console.log(threshold);
-        return {levels, threshold};
+        let threshold = this.binsearch(volume);
+        let peaks = volume.map(x => x > threshold);
+        let beep = this.extract(peaks);
+        console.debug('[D] ANALYZE FREQ:', freq);
+        console.debug('[D] THRESHOLD:', threshold);
+        console.debug('[D] EXTRACTED BEEP:', beep);
+        this.export = {threshold, volume};
+        return beep;
     }
 
-    binsearch(levels) {
-        let left = -12;
+    binsearch(volume) {
+        let left = -20;
         let right = 0;
         while (right - left > 0.01) {
             let mid = left + (right - left) / 2;
-            let peaks = levels.map(x => x > mid);
+            let peaks = volume.map(x => x > mid);
             if (this.check(peaks)) left = mid;
             else right = mid;
         }
@@ -59,22 +50,40 @@ export default class Detector {
     }
 
     check(peaks) {
-        const peak_width = (50 / 1000) * this.context.sampleRate / this.config.winstep; // TODO
-        let found_peaks = []
-        let peak_cnt = 0;
-        for (let i = 0; i < peaks.length; ++i) {
-            if (peaks[i]) {
-                peak_cnt++;
-                if (peak_cnt === peak_width) {
-                    found_peaks.push([i - peak_width, i]);
-                    peak_cnt = 0;
-                }
-            }
-            else {
-                peak_cnt = 0;
-            }
+        let first = null;
+        let last = null;
+        for (let i = 0; i < peaks.length; i++) {
+            if (!peaks[i]) continue;
+            if (first === null) first = i;
+            last = i;
         }
+        if (first === last) first = last = 0;
+        return (last - first) >= this.peaksize;
+    }
 
-        return found_peaks.length >= 1; // TODO
+    extract(peaks) {
+        let first = null;
+        let last = null;
+        let found = false;
+        let prev = false;
+        peaks.push(false);
+        for (let i = 0; i < peaks.length; i++) {
+            if (found && peaks[i]) console.warn('[D] FOUND EXTRA PEAK');
+            if (!found && !prev && peaks[i]) first = i;
+            if (prev && !peaks[i]) last = i;
+            found = (first !== null) && (last !== null);
+            prev = peaks[i];
+        }
+        if (!found) return null;
+        let error = Math.abs(this.peaksize - (last - first));
+        if (error > this.accuracy) {
+            console.debug('[D] FAILED TO EXTRACT BEEP DUE TO ACCURACY ERROR');
+            console.debug('[D] RISING EDGE:', first);
+            console.debug('[D] FALLING EDGE:', last);
+            console.debug('[D] PEAK WIDTH:', (last - first));
+            console.debug('[D] EXPECTED WIDTH:', this.peaksize);
+            return null;
+        }
+        return (first + last) / 2 * this.winstep / this.samplerate;
     }
 }

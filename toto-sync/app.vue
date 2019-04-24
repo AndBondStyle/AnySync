@@ -23,8 +23,12 @@
         <div class="flex-row">
             <div class="flex-col flex-fill">
                 <div class="flex-row" v-for="(device, index) in devices">
-                    <div class="btn fake">#{{ index }}</div>
-                    <div class="btn fake flex-fill">{{ device.latency !== null ? device.latency : '?' }} ms</div>
+                    <div class="btn" :class="{active: exports[device.id]}" @click="viewdata(device.id)">
+                        #{{ index }}
+                    </div>
+                    <div class="btn fake flex-fill">
+                        {{ device.latency !== null ? device.latency : '?' }} ms
+                    </div>
                 </div>
             </div>
             <div class="flex-col">
@@ -54,6 +58,7 @@
                 index: null,
                 leader: true,
                 devices: [],
+                exports: {},
                 playing: false,
                 syncing: false,
                 copying: false,
@@ -72,6 +77,7 @@
                 this.peer = this.core.peer.id;
                 this.index = this.core.index;
                 this.devices = Object.values(this.core.devices);
+                this.exports = this.core.exports;
                 this.leader = this.core.leader;
                 this.playing = this.core.player.playing;
                 if (!this.failed && this.core.peer && !this.core.party) {
@@ -100,6 +106,12 @@
                 let device = this.core.devices[id];
                 device.status = device.status < 1 ? 1 : 0;
                 this.core.broadcast({event: 'devices', data: this.core.devices});
+            },
+            async viewdata(id) {
+                let data = this.exports[id];
+                if (!data) return;
+                window.export = data;
+                window.open('/beep-detector/index.html');
             },
         },
     }

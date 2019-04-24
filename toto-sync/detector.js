@@ -8,6 +8,7 @@ export default class Detector {
         this.stream = null;
         this.recorder = null;
         this.oscillator = null;
+        this.export = null;
 
         this.samplerate = this.context.sampleRate;
         this.margins = [500 / 1000, 500 / 1000];
@@ -78,6 +79,12 @@ export default class Detector {
             let silence = buffer.getChannelData(0).findIndex(x => x !== 0);
             console.debug('[D] LENGTH OF INITIAL SILENCE:', silence);
             this.recorder = null;
+            this.export = {
+                signal: buffer.getChannelData(0),
+                samplerate: buffer.sampleRate,
+                beeplen: this.beeplen,
+                detfreqs: this.freqs,
+            };
             resolve(buffer);
         };
         console.log('[D] DONE PREPARING AT:', new Date().getTime());
@@ -97,7 +104,7 @@ export default class Detector {
         let buffer = await this.recorder.done;
         if (buffer === null) return null;
         let signal = buffer.getChannelData(0);
-        let beeps = config.detfreqs.map(freq => this.analyze(signal, freq));
+        let beeps = config.detfreqs.map(freq => this.detect(signal, freq));
         this.stream.getAudioTracks().map(x => x.stop());
         return beeps;
     }
@@ -116,7 +123,7 @@ export default class Detector {
         this.oscillator.stop(start + this.beeplen);
     }
 
-    analyze(signal, freq) {
+    detect(signal, freq) {
         let spectrum = new Spectrum(this.winsize);
         let realindex = freq * this.winsize / this.samplerate;
         let index = Math.floor(realindex);

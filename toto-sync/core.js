@@ -13,6 +13,7 @@ export default class Core {
         this.leader = true;
         this.leaderconn = null;
         this.devices = {};
+        this.exports = {};
         this.connections = {};
         this.results = null;
         this.timediff = 0;
@@ -58,13 +59,26 @@ export default class Core {
         let index = 0;
         for (let device of devices) {
             let conn = this.connections[device.id];
-            if (targets.includes(device)) conn.send({event: 'sync', data: configs[index++]});
-            else conn.send({event: 'sync', data: baseconfig});
+            if (targets.includes(device)) {
+                let config = configs[index++];
+                console.log('[C] SENDING TARGET CONFIG:', config);
+                try {
+                    conn.send({event: 'sync', data: config});
+                } catch (err) {
+                    console.error('[!!!] SHIT HAPPENS:', err);
+                    Sentry.captureException(err);
+                    conn.send({event: 'sync', data: config});
+                }
+            } else {
+                console.log('[C] SENDING RECORDER CONFIG:', baseconfig);
+                conn.send({event: 'sync', data: baseconfig});
+            }
         }
         let connections = targets.map(x => this.connections[x.id]);
         let resolve = null;
         let promise = new Promise(r => resolve = r);
         this.results = [];
+        this.exports = {};
         this.results.check = () => {
             if (this.results.length === recorders) resolve();
             else setTimeout(resolve, 5000);
@@ -272,6 +286,12 @@ export default class Core {
         let event = message.event;
         let data = message.data;
 
+        if (this.leader && event === 'detector-export') {
+            if (data === null) return;
+            data.signal = new Float32Array(data.signal);
+            this.exports[conn.peer] = data;
+            console.log('[M] DETECTOR EXPORT:', data);
+        }
         if (this.leader && event === 'sync-result') {
             if (this.results === null) return;
             this.results.push(data);
@@ -296,6 +316,8 @@ export default class Core {
             let callback = async () => {
                 if (this.player.playing) this.player.stop();
                 let result = await this.detector.sync(data);
+                console.log('[C] SENDING DETECTOR EXPORT:', this.detector.export);
+                this.leaderconn.send({event: 'detector-export', data: this.detector.export});
                 console.debug('[C] DETECTION RESULT:', result);
                 if (result === null) return;
                 console.log('[C] SENDING RESULT TO LEADER...');
