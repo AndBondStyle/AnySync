@@ -2,7 +2,7 @@
   "name": "anysync-experiments",
   "private": true,
   "scripts": {
-    "serve": "parcel *.html --port 80 --out-dir public",
+    "serve": "parcel *.html --port 80 --out-dir public --no-hmr",
     "build": "parcel build *.html --out-dir public",
     "start": "http-server --port $PORT --gzip"
   },
