@@ -1,4 +1,4 @@
-import { AudioContext } from 'standardized-audio-context';
+import {AudioContext} from 'standardized-audio-context';
 import Cookie from 'js-cookie';
 import QS from 'query-string';
 import Peer from 'peerjs';
@@ -60,15 +60,10 @@ export default class Core {
         for (let device of devices) {
             let conn = this.connections[device.id];
             if (targets.includes(device)) {
-                let config = configs[index++];
+                // TODO: FURTHER INVESTIGATION
+                let config = JSON.parse(JSON.stringify(configs[index++]));
                 console.log('[C] SENDING TARGET CONFIG:', config);
-                try {
-                    conn.send({event: 'sync', data: config});
-                } catch (err) {
-                    console.error('[!!!] SHIT HAPPENS:', err);
-                    Sentry.captureException(err);
-                    conn.send({event: 'sync', data: config});
-                }
+                conn.send({event: 'sync', data: config});
             } else {
                 console.log('[C] SENDING RECORDER CONFIG:', baseconfig);
                 conn.send({event: 'sync', data: baseconfig});
