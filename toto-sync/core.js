@@ -61,7 +61,7 @@ export default class Core {
             let conn = this.connections[device.id];
             if (targets.includes(device)) {
                 // TODO: FURTHER INVESTIGATION
-                let config = JSON.parse(JSON.stringify(configs[index++]));
+                let config = configs[index++];
                 console.log('[C] SENDING TARGET CONFIG:', config);
                 conn.send({event: 'sync', data: config});
             } else {
