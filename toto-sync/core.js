@@ -60,13 +60,13 @@ export default class Core {
         for (let device of devices) {
             let conn = this.connections[device.id];
             if (targets.includes(device)) {
-                // TODO: FURTHER INVESTIGATION
-                let config = configs[index++];
+                let config = JSON.parse(JSON.stringify(configs[index++]));
                 console.log('[C] SENDING TARGET CONFIG:', config);
                 conn.send({event: 'sync', data: config});
             } else {
-                console.log('[C] SENDING RECORDER CONFIG:', baseconfig);
-                conn.send({event: 'sync', data: baseconfig});
+                let config = JSON.parse(JSON.stringify(baseconfig));
+                console.log('[C] SENDING RECORDER CONFIG:', config);
+                conn.send({event: 'sync', data: config});
             }
         }
         let connections = targets.map(x => this.connections[x.id]);
