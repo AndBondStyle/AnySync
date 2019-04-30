@@ -16,6 +16,7 @@
     "js-cookie": "^2.2.0",
     "microphone-stream": "^5.0.1",
     "opus-stream-decoder": "^1.2.3",
+    "opus-to-pcm": "^1.0.2",
     "parcel-bundler": "^1.12.3",
     "parcel-plugin-compress": "^1.0.9",
     "peerjs": "^0.3.24",
