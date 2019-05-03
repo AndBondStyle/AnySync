@@ -1,13 +1,14 @@
 import 'babel-polyfill';
+import Player from './player';
+import toto from './toto.mp3';
 import axios from 'axios';
 import Peer from 'peerjs';
 
-const URL = 'https://archive.org/download/testmp3testfile/mpthreetest.mp3';
 const CONFIG = {key: 'lwjd5qra8257b9'}; // PeerJS public server key
-const BUFFERING = 5000; // Single chunk length (ms)
-const DELAY = 1000; // Emulated stream delay (ms)
+const BUFFERING = 1000 / 1000; // Single chunk length (s)
+const DELAY = 1000 / 1000; // Emulated stream delay (s)
 
-let time = () => context.currentTime * 1000; // Current time shortcut
+let time = () => context.currentTime; // Current time shortcut
 let btn = document.querySelector('#btn'); // Button element
 btn.onclick = init;
 
@@ -20,6 +21,7 @@ let currtime = null; // Current chunk timestamp ({DELAY} ms ahead from actual ti
 let promise = null; // Promise holder to avoid callback madness
 let resolve = null; // Promise resolve callback (used with decoder)
 let firstchunk = null; // First chunk retrieved from recorder (contains OPUS header)
+let player = null; // Player
 
 async function init() {
     btn.onclick = () => null;
@@ -39,24 +41,26 @@ async function init() {
     promise = new Promise(r => b.on('connection', r));
     a.connection = a.connect(b.id);
     b.connection = await promise;
-    b.connection.on('data', recieveChunk);
+    b.connection.on('data', chunk => {
+        chunk.data = new Uint8Array(chunk.data);
+        player.feed(chunk);
+    });
 
-    console.log('Setting up audio stream...');
+    console.log('Setting up stream...');
     context = new AudioContext();
     let stream = await initStream();
 
-    // console.log('Setting up decoder...');
-    // decoder = new Decoder({channels: 2, fallback: false});
-    // decoder.decoder.flushLimit = 1;
+    console.log('Setting up player...');
+    player = new Player(context, () => time());
 
     console.log('Setting up recorder...');
     let recorder = new MediaRecorder(stream);
     recorder.addEventListener('dataavailable', sendChunk);
-    recorder.start(BUFFERING);
+    recorder.start(BUFFERING * 1000);
 
     console.log('Waiting for the first chunk...');
     btn.innerText = 'BUFFERING...';
-    promise = new Promise(r => setTimeout(r, BUFFERING));
+    promise = new Promise(r => setTimeout(r, BUFFERING * 1000));
     await promise;
 
     console.log('Ready to broadcast');
@@ -65,13 +69,13 @@ async function init() {
     btn.onclick = () => {
         console.log('Broadcasting...');
         btn.innerText = 'BROADCASTING...';
-        a.connection.send({blob: firstchunk, first: true});
+        a.connection.send({data: firstchunk, first: true});
         broadcast = true;
     };
 }
 
 async function initStream() {
-    let ret = await axios.get(URL, {responseType: 'arraybuffer'});
+    let ret = await axios.get(toto, {responseType: 'arraybuffer'});
     let buffer = await context.decodeAudioData(ret.data);
     let source = context.createBufferSource();
     let destination = context.createMediaStreamDestination();
@@ -86,35 +90,42 @@ async function sendChunk(event) {
     if (firstchunk == null) firstchunk = await new Response(event.data).arrayBuffer();
     if (currtime == null) currtime = time() + DELAY;
     if (prevtime == null) prevtime = event.timecode;
-    let delta = event.timecode - prevtime;
+    let delta = (event.timecode - prevtime) / 1000;
     prevtime = event.timecode; currtime += delta;
     if (!broadcast) return;
-    let data = {blob: event.data, timestamp: currtime};
+    let data = {data: event.data, timestamp: currtime};
     a.connection.send(data);
     console.log('[A] Sent chunk with timestamp:', currtime);
 }
 
-async function recieveChunk(data) {
-    if (data.first) return;
-    let buffer = await decode(data.blob);
+async function recieveChunk(chunk) {
+    if (chunk.first) return;
+    let buffer = await decode(chunk.data);
     let source = context.createBufferSource();
-    let start = context.currentTime +(data.timestamp - time()) / 1000;
+    let start = context.currentTime + chunk.timestamp - time();
     console.log('NOW:', context.currentTime, 'PLAY AT:', start);
     source.buffer = buffer;
     source.connect(context.destination);
     source.start(start);
-    console.log('[B] Scheduled chunk with timestamp:', data.timestamp);
+    console.log('[B] Scheduled chunk with timestamp:', chunk.timestamp);
 }
 
-async function decode(blob) {
-    let headersize = 162;
-    let header = firstchunk.slice(0, headersize);
-    console.log('HEADER LAST BYTE:', (new Uint8Array(header))[header.byteLength - 1].toString(16));
-    console.log('CHUNK FIRST BYTE:', (new Uint8Array(blob, 0, 1))[0].toString(16));
-    let data = new Uint8Array(header.byteLength + blob.byteLength);
+async function decode(chunk) {
+    let header = firstchunk.slice(0, 162);
+    let data = new Uint8Array(header.byteLength + chunk.byteLength);
     data.set(new Uint8Array(header), 0);
-    data.set(new Uint8Array(blob), header.byteLength);
-    return context.decodeAudioData(data.buffer);
+    data.set(new Uint8Array(chunk), header.byteLength);
+    let buffer = await context.decodeAudioData(data.buffer);
+
+    let silence = 1024;
+    let newbuffer = context.createBuffer(1, buffer.length + silence, context.sampleRate);
+    let signal = new Float32Array(buffer.length + silence);
+    signal.set(buffer.getChannelData(0), 0);
+    newbuffer.copyToChannel(signal, 0);
+
+    console.log('OLD BUFFER:', buffer);
+    console.log('NEW BUFFER:', newbuffer);
+    return newbuffer;
 }
 
 function download(data) {
