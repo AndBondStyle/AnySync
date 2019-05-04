@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css?family=Ubuntu+Mono');
+
+/*
+$primary: #00838F;
+$danger: #8c2b2b;
+$light: #CDCFDE;
+$dark: #343539;
+$darker: #1D1E22;
+$border: 2px solid $light;
+$gutter: 20px;
+*/
+
+/* ESSENTIAL */
+
+* {
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin: 0;
+    padding: 50px;
+    /*min-width: 500px;*/
+    /*min-height: 400px;*/
+
+    background: #1D1E22;
+    color: #CDCFDE;
+    font-family: "Ubuntu Mono", monospace;
+    font-size: 18pt;
+    text-align: center;
+}
+
+/* UTILS */
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.flex-row > *:not(:last-child) {
+    margin-right: 20px;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-col > *:not(:last-child) {
+    margin-bottom: 20px;
+}
+
+.flex-center {
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-fill {
+    flex: 1;
+}
+
+.full-height {
+    height: 100%;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-big {
+    font-size: 1.5em;
+}
+
+/* BUTTONS */
+
+.btn {
+    padding: 10px 15px;
+    background: #343539;
+    border: 2px solid #CDCFDE;
+    user-select: none;
+}
+
+.btn:not(.fake) {
+    cursor: pointer;
+}
+
+.btn:not(.fake):hover {
+    outline: 1px solid #CDCFDE;
+}
+
+.btn.active {
+    background: #00838F;
+}
+
+.btn.danger {
+    background: #8c2b2b;
+}

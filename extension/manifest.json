@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "version": "1",
+    "name": "AnySync Capture",
+    "description": "Capture & stream audio from any tab",
+    "browser_action": {
+        "default_popup": "popup/popup.html",
+        "default_title": "Open Chrome Audio Capture interface"
+    },
+    "background": {
+        "scripts": ["peerjs.min.js", "background.js"],
+        "persistent": true
+    },
+    "permissions": ["tabs", "tabCapture"]
+}
