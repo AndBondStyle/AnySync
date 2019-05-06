@@ -22,7 +22,8 @@ async function init() {
 
 async function connection(conn) {
     console.log('CONNECTION:', conn.peer);
-    await new Promise(resolve => conn.once('open', resolve));
+    // await new Promise(resolve => conn.once('open', resolve));
+    // console.log('ok');
     peer.call(conn.peer, destination.stream);
     conn.close();
 }

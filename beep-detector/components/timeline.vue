@@ -1,6 +1,6 @@
 <template>
     <div class="wrapper">
-        <canvas style="padding: 0" height="100" width="100"></canvas>
+        <canvas style="padding: 0" height="200" width="100"></canvas>
     </div>
 </template>
 
@@ -47,7 +47,7 @@
 <style scoped>
     .wrapper {
         display: flex;
-        width: 1200px;
+        width: 1300px;
         max-width: 100%;
         overflow: auto;
         border: 2px solid #CDCFDE;
