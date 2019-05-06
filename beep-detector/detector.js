@@ -32,9 +32,9 @@ export default class Detector {
         let smoothed = this.smooth(volume);
         let threshold = this.binsearch(smoothed);
         let beep = this.extract(volume, threshold);
-        console.debug('[D] ANALYZE FREQ:', freq);
-        console.debug('[D] THRESHOLD:', threshold);
-        console.debug('[D] EXTRACTED BEEP:', beep);
+        console.log('[D] ANALYZE FREQ:', freq);
+        console.log('[D] THRESHOLD:', threshold);
+        console.log('[D] EXTRACTED BEEP:', beep);
         this.export = {threshold, volume, smoothed};
         return beep;
     }
@@ -52,9 +52,9 @@ export default class Detector {
     }
 
     smooth(volume) {
-        let extended = new Float32Array(volume.length + this.peaksize).fill(-Infinity);
-        extended.set(volume, Math.floor(this.peaksize / 2));
-        let result = new Float32Array(volume.length);
+        let extended = new Array(volume.length + this.peaksize).fill(this.minvolume);
+        extended.splice(Math.floor(this.peaksize / 2), volume.length, ...volume);
+        let result = new Array(volume.length);
         for (let i = 0; i < volume.length; i++) {
             let sum = 0;
             for (let j = 0; j < this.peaksize; j++) {
@@ -96,7 +96,8 @@ export default class Detector {
     extract(volume, threshold) {
         let first = volume.findIndex(x => x > threshold);
         let last = volume.length - volume.slice().reverse().findIndex(x => x > threshold);
-        console.log('PEAK WIDTH:', last - first);
+        console.log('[D] PEAK WIDTH:', last - first);
+        console.log('[D] EXPECTED:', this.peaksize, '\u00B1', this.accuracy);
         if (Math.abs(this.peaksize - (last - first)) > this.accuracy) return null;
         return Math.floor((first + last) / 2);
     }
