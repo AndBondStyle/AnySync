@@ -8,6 +8,8 @@ npm run serve
 ```
 
 * [Toto Sync v2](https://anysync.herokuapp.com/toto-sync/) &ndash; Minimal synchronization testing app
+* [Mini Player](https://anysync.herokuapp.com/mini-player/?) & [Capture Extension](capture-extension)
+ &ndash; Capture & stream sound from browser tab via WebRTC
 * [Beep Detector](https://anysync.herokuapp.com/beep-detector/) &ndash; FFT beep detection (works with data imported from toto-sync)
 * [Old Beep Detector](https://anysync.herokuapp.com/old-beep-detector/) &ndash; Overengineered version of beep detector (unfinished)
 * [Timestamped Stream](https://anysync.herokuapp.com/timestamped-stream/) &ndash; Web audio API + WebRTC + OPUS decoder (unfinished)
