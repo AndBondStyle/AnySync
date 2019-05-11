@@ -27,6 +27,9 @@ Peer.js socket wrapper + event parsing
 
 Handles feedback recording
 
+* `constructor(time)` &ndash; `time` is timesource function
+* `record(start, end)` &ndash; records audio between `start` and `end` timestamps (s)
+
 ### `Detector`
 
 Handles beep detection
