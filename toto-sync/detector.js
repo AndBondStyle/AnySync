@@ -148,7 +148,6 @@ export default class Detector {
         console.log('[D] ANALYZE FREQ:', freq);
         console.log('[D] THRESHOLD:', threshold);
         console.log('[D] EXTRACTED BEEP:', beep);
-        this.export = {threshold, volume, smoothed};
         return beep;
     }
 
