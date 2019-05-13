@@ -99,6 +99,6 @@ export default class Detector {
         console.log('[D] PEAK WIDTH:', last - first);
         console.log('[D] EXPECTED:', this.peaksize, '\u00B1', this.accuracy);
         if (Math.abs(this.peaksize - (last - first)) > this.accuracy) return null;
-        return Math.floor((first + last) / 2);
+        return (first + last) / 2 * this.winstep / this.samplerate;
     }
 }
