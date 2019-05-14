@@ -17,7 +17,19 @@ Classes
 
 ### `Device`
 
-Holds device info, peer socket + useful methods
+Handles everything device-related
+
+* `constructor(conn, context, source)` &ndash; constructs freshly-connected device:
+    * `conn` &ndash; peer connection (wrapped)
+    * `context` &ndash; audio context to work within
+    * `source` &ndash; media stream source node
+* `schedule(config)` &ndash; schedules synchronization routine, where config consists of:
+    * `start` &ndash; sync schedule start timestamp (s)
+    * `end` &ndash; sync schedule end timestamp (s)
+    * `record` &ndash; bool indicating if device need to record feedback
+    * `beep` &ndash; bool indicating if device need to beep
+    * `beepfreq` &ndash; frequency to beep at (if beep is true)
+    * `beeptime` &ndash; timestamp to beep at (if beep is true)
 
 ### `Peer`
 
@@ -76,6 +88,8 @@ Events
 
 ### `'devices'`
 
+Direction: leader &rarr; clients
+
 * `id` &ndash; device peer id
 * `status` &ndash; device status:
     * `0` &ndash; disconnected
@@ -83,12 +97,16 @@ Events
     * `2` &ndash; connected, synced
 * `latency` &ndash; audio output latency (s)
 
-### `'sync'`
+### `'record'`
 
-* `start` &ndash; sync schedule start timestamp (s)
-* `end` &ndash; sync schedule end timestamp (s)
+Direction: leader &rarr; clients
+
+* `start` &ndash; feedback recording start timestamp (s)
+* `end` &ndash; feedback recording end timestamp (s)
 
 ### `'feedback'`
+
+Direction: clients &rarr; leader
 
 * `data` &ndash; one of following:
     * `arraybuffer` &ndash; feedback recorded successfully
@@ -96,4 +114,10 @@ Events
     
 ### `'time'`
 
+Direction: leader &harr; clients
+
 * `data` &ndash; sender timestamp (s)
+
+### `'ping'`
+
+Direction: leader &harr; clients

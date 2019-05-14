@@ -1,21 +1,26 @@
 {
   "name": "anysync",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "build-extension": "parcel build extension/manifest.json -d extension/build"
+  },
   "dependencies": {
-    "parcel-bundler": "^1.12.3",
+    "@vue/component-compiler-utils": "^2.6.0",
+    "await-sleep": "0.0.1",
     "babel-polyfill": "^6.26.0",
     "clipboard-copy": "^3.0.0",
-    "http-server": "^0.11.1",
-    "peerjs": "^0.3.24",
-    "query-string": "^6.4.2",
-    "spectrum-analyzer": "^1.2.2",
     "get-user-media-promise": "^1.1.4",
-    "standardized-audio-context": "^19.1.1",
+    "http-server": "^0.11.1",
+    "parcel-bundler": "^1.12.3",
+    "parcel-plugin-web-extension": "^1.5.2",
+    "peerjs": "^0.3.24",
+    "performance-now": "^2.1.0",
+    "query-string": "^6.4.2",
     "sass": "^1.17.4",
+    "spectrum-analyzer": "^1.2.2",
+    "standardized-audio-context": "^19.1.1",
     "vue": "^2.6.10",
     "vue-hot-reload-api": "^2.3.3",
-    "vue-template-compiler": "^2.6.10",
-    "@vue/component-compiler-utils": "^2.6.0"
+    "vue-template-compiler": "^2.6.10"
   }
 }

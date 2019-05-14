@@ -1,5 +1,5 @@
 import {EventEmitter} from 'events';
-import now from 'perfomance-now';
+import now from 'performance-now';
 import RawPeer from 'peerjs';
 
 class Connection extends EventEmitter {
@@ -13,7 +13,7 @@ class Connection extends EventEmitter {
         Object.defineProperty(this, 'open', {get: () => this.conn.open});
 
         this.conn.once('open', () => this.resolve(this.id = conn.peer));
-        this.conn.on('error', err => console.debug('[CONN] ERROR:', err.type, err));
+        this.conn.on('error', err => console.warn('[CONN] ERROR:', err.type, err));
         this.conn.on('data', this.process.bind(this));
         if (this.conn.open) this.conn.emit('open');
         this.ready.then(this.poll.bind(this));
@@ -52,6 +52,7 @@ export default class Peer extends EventEmitter {
         this.peer = new RawPeer();
         this.id = null;
         this.ready = new Promise(r => this.resolve = r);
+        this.call = (...args) => this.peer.call(...args);
 
         this.peer.once('open', id => this.resolve(this.id = id));
         this.peer.once('error', () => this.resolve(null));
@@ -60,7 +61,7 @@ export default class Peer extends EventEmitter {
         this.peer.on('call', this.answer.bind(this));
 
         this.peer.on('open', id => console.debug('[PEER] RECEIVED PEER ID:', id));
-        this.peer.on('error', err => console.debug('[PEER] ERROR:', err.type, err));
+        this.peer.on('error', err => console.warn('[PEER] ERROR:', err.type, err));
         this.peer.on('disconnected', () => console.debug('[PEER] DISCONNECTED'));
         this.peer.on('connection', conn => console.debug('[PEER] CONNECTION:', conn.peer));
     }
