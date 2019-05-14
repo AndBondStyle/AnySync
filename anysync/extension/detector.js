@@ -1,15 +1,18 @@
 import Spectrum from 'spectrum-analyzer';
 
+// BEEP DURATION (S)
+const beeplen = 50 / 1000;
+// FFT WINDOW SIZE (SAMPLES)
+const winsize = 1024;
+// FFT WINDOW STEP (SAMPLES)
+const winstep = 32;
+// MIN DETECTION VOLUME (DB)
+const minvolume = -10;
+
 export default class Detector {
     constructor(samplerate) {
         this.samplerate = samplerate;
-
-        this.beeplen = 50;
-        this.winsize = 1024;
-        this.winstep = 32;
-        this.minvolume = -10;
-
-        this.peaksize = this.beeplen * this.samplerate / this.winstep;
+        this.peaksize = beeplen * this.samplerate / winstep;
         this.accuracy = this.peaksize / 2;
         this.kernel = this.makeKernel();
     }
@@ -30,16 +33,16 @@ export default class Detector {
         let items = [];
         let volumes = [];
         for (let freq of freqs) {
-            let realindex = freq * this.winsize / this.samplerate;
+            let realindex = freq * winsize / this.samplerate;
             let index = Math.floor(realindex);
             let mixratio = realindex - index;
             items.push([index, mixratio]);
             volumes.push([]);
         }
 
-        let spectrum = new Spectrum(this.winsize);
-        for (let i = 0; i < signal.length - this.winsize; i += this.winstep) {
-            spectrum.appendData(signal.slice(i, i + this.winsize));
+        let spectrum = new Spectrum(winsize);
+        for (let i = 0; i < signal.length - winsize; i += winstep) {
+            spectrum.appendData(signal.slice(i, i + winsize));
             spectrum.recompute();
             for (let j = 0; j < freqs.length; j++) {
                 let [index, mixratio] = items[j];
@@ -54,15 +57,16 @@ export default class Detector {
             let smoothed = this.smooth(volumes[i]);
             let threshold = this.binsearch(smoothed);
             let beep = this.extract(volumes[i], threshold);
-            console.debug('[D] ANALYZE FREQ:', freqs[i]);
-            console.debug('[D] THRESHOLD:', threshold);
-            console.debug('[D] EXTRACTED BEEP:', beep);
+            console.debug('[DETECT] ANALYZE FREQ:', freqs[i]);
+            console.debug('[DETECT] THRESHOLD:', threshold);
+            console.debug('[DETECT] EXTRACTED BEEP:', beep);
         }
+        console.debug('[DETECT] FINAL RESULT:', beeps);
         return beeps;
     }
 
     smooth(volume) {
-        let extended = new Array(volume.length + this.peaksize).fill(this.minvolume);
+        let extended = new Array(volume.length + this.peaksize).fill(minvolume);
         extended.splice(Math.floor(this.peaksize / 2), volume.length, ...volume);
         let result = new Array(volume.length).fill(0);
         for (let i = 0; i < volume.length; i++) {
@@ -74,7 +78,7 @@ export default class Detector {
     }
 
     binsearch(volume) {
-        let left = this.minvolume;
+        let left = minvolume;
         let right = 0;
         while (right - left > 0.01) {
             let mid = left + (right - left) / 2;
@@ -105,8 +109,8 @@ export default class Detector {
         volume = volume.slice();
         let first = volume.findIndex(x => x > threshold);
         let last = volume.length - volume.reverse().findIndex(x => x > threshold);
-        console.debug('[D] PEAK WIDTH:', last - first);
-        console.debug('[D] EXPECTED:', this.peaksize, '\u00B1', this.accuracy);
+        console.debug('[DETECT] PEAK WIDTH:', last - first);
+        console.debug('[DETECT] EXPECTED:', this.peaksize, '\u00B1', this.accuracy);
         if (Math.abs(this.peaksize - (last - first)) > this.accuracy) return null;
         return Math.floor((first + last) / 2);
     }

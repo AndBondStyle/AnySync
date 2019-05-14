@@ -69,6 +69,7 @@ Handles audio stream playback with latency correction
 
 * `constructor(stream)` &ndash; `stream` is source media stream from WebRTC
 * `set latency(value)` &ndash; adjusts playback delay to compensate provided latency
+* `get-set muted(bool)` &ndash; mutes || unmutes player
 
 Events
 ------
