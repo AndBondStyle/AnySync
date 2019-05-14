@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.75">
+    <title>AnySync</title>
+    <link rel="stylesheet" href="../common/style.scss">
+</head>
+<body>
+<div id="app" class="flex-col text-center">
+    <p class="text-big">==== ANYSYNC SPEAKER ====</p>
+    <div v-if="!party" class="flex-col">
+        <div class="btn fake danger">PARTY ID NOT FOUND</div>
+        <p>Message about what's wrong</p>
+    </div>
+    <div v-if="party" class="flex-col">
+        <div v-if="!copying" class="btn" @click="copy">
+            PARTY ID: {{ party }} <span v-if="index !== null">#{{ index }}</span>
+        </div>
+        <div v-else class="btn"><<< URL COPIED >>></div>
+        <div v-if="status === 'initial'" class="btn active" @click="connect"><<< CONNECT >>></div>
+        <div v-if="status === 'connecting'" class="btn">CONNECTING...</div>
+        <div v-if="status === 'failed'" class="btn fake danger">FAILED TO CONNECT</div>
+        <div v-if="status === 'disconnected'" class="btn fake danger">DISCONNECTED</div>
+        <div v-if="status === 'connected'" class="flex-col">
+            <div class="btn fake active">CONNECTED DEVICES: {{ devices.length }}</div>
+            <div class="flex-col">
+                <div class="flex-row" v-for="(device, index) in devices">
+                    <div class="btn fake">#{{ index }}</div>
+                    <div class="btn fake flex-fill">{{ Math.round(device.latency * 1000) }} ms</div>
+                    <div class="btn fake" :class="{active: device.status === 2, danger: device.status === 3}">
+                        {{ ['OFF', 'NEW', 'OK!', 'ERR'][device.status] }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="index.js"></script>
+</body>
+</html>

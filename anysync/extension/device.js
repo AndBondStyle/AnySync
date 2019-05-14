@@ -4,7 +4,7 @@ import sleep from 'await-sleep';
 // BEEP DURATION (S)
 const beeplen = 50 / 1000;
 
-export default class Device extends EventEmitter{
+export default class Device extends EventEmitter {
     constructor(parent, conn) {
         super();
         this.peer = parent.peer;
@@ -13,32 +13,38 @@ export default class Device extends EventEmitter{
         this.context = parent.context;
         this.source = parent.gain;
         this.conn = conn;
-
         this.mediaconn = null;
         this.id = this.conn.id;
         this.status = 1;
         this.latency = 0;
 
         this.gain = this.context.createGain();
-        this.oscillator = this.context.createOscillator();
+        this.oscillator = null;
         this.destination = this.context.createMediaStreamDestination();
         this.stream = this.destination.stream;
-        this.oscillator.type = 'sine';
         this.gain.gain.value = 0;
-        this.oscillator.connect(this.destination);
         this.source.connect(this.gain);
         this.gain.connect(this.destination);
         this.conn.ready.then(this.init.bind(this));
     }
 
     async init() {
-        this.conn.on('close', () => this.emit('disconnected', this.status = 0));
+        this.conn.on('close', this.disconnected.bind(this));
+        this.conn.on('feedback', data => this.emit('feedback', data));
         console.debug('[DEVICE] HANDSHAKING');
         this.conn.send('time', this.time());
         this.mediaconn = this.peer.call(this.id, this.stream);
-        this.mediaconn.on('error',err => console.warn('[DEVICE] MEDIA ERROR:', err.type, err));
+        this.mediaconn.on('error', err => console.warn('[DEVICE] MEDIA ERROR:', err));
         await sleep(500);
         if (!this.mediaconn.open) console.warn('[DEVICE] MEDIA CONNECTION NOT OPEN');
+        else console.debug('[DEVICE] MEDIA CONNECTION ESTABLISHED');
+    }
+
+    disconnected() {
+        console.debug('[DEVICE] CONNECTION CLOSED:', this.id);
+        if (this.mediaconn.open) this.mediaconn.close();
+        this.status = 0;
+        this.emit('disconnected');
     }
 
     schedule(config) {
@@ -52,6 +58,8 @@ export default class Device extends EventEmitter{
         }
         if (config.beep) {
             console.debug('[DEVICE] SCHEDULING BEEP');
+            this.oscillator = this.context.createOscillator();
+            this.oscillator.connect(this.destination);
             this.oscillator.frequency.value = config.beepfreq;
             this.oscillator.start(this.timemap(config.beeptime));
             this.oscillator.stop(this.timemap(config.beeptime) + beeplen);

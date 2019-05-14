@@ -13,7 +13,7 @@ class Connection extends EventEmitter {
         Object.defineProperty(this, 'open', {get: () => this.conn.open});
 
         this.conn.once('open', () => this.resolve(this.id = conn.peer));
-        this.conn.on('error', err => console.warn('[CONN] ERROR:', err.type, err));
+        this.conn.on('error', err => console.warn('[CONN] ERROR:', err));
         this.conn.on('data', this.process.bind(this));
         if (this.conn.open) this.conn.emit('open');
         this.ready.then(this.poll.bind(this));
@@ -21,14 +21,17 @@ class Connection extends EventEmitter {
 
     async poll() {
         if (this.last === null) this.last = now();
-        if (now() - this.last > 3) this.conn.open = false;
-        if (!this.conn.open) {
-            console.debug('[CONN] CONNECTION CLOSED:', this.id);
+        if (now() - this.last > 2000) {
+            console.debug('[CONN] PING TIMEOUT EXCEEDED');
+            this.conn.close();
             this.emit('close');
-            return;
+        } else if (!this.conn.open) {
+            console.debug('[CONN] CONNECTION CLOSED');
+            this.emit('close');
+        } else {
+            setTimeout(this.poll.bind(this), 500);
+            this.send('ping');
         }
-        this.send('ping');
-        setTimeout(this.poll.bind(this), 500);
     }
 
     async process(raw) {
@@ -40,9 +43,10 @@ class Connection extends EventEmitter {
 
         let event = raw.event;
         let data = raw.data;
+        if (event !== 'ping') console.warn('[CONN] EVENT:', event, 'DATA:', data);
         if (event === 'ping') this.last = now();
-        else if (data == null) this.emit(event, this);
-        else this.emit(event, this, data);
+        else if (data == null) this.emit(event);
+        else this.emit(event, data);
     }
 }
 
@@ -66,13 +70,6 @@ export default class Peer extends EventEmitter {
         this.peer.on('connection', conn => console.debug('[PEER] CONNECTION:', conn.peer));
     }
 
-    broadcast(event, data) {
-        console.debug('[PEER] BROADCASTING:', event, data);
-        let conns = Object.values(this.peer.connections);
-        conns = conns.map(x => x.find(x => x.type === 'data'));
-        for (let conn of conns.filter(x => x)) conn.send({event, data});
-    }
-
     async connect(id) {
         console.debug('[PEER] CONNECTING TO:', id);
         let resolve = null;
@@ -90,7 +87,7 @@ export default class Peer extends EventEmitter {
         console.debug('[PEER] INCOMING CALL:', conn.peer);
         conn.answer();
         let stream = await new Promise(resolve => conn.once('stream', resolve));
-        console.debug('[PEER] RECEIVED MEDIA STREAM:', stream);
+        console.debug('[PEER] RECEIVED MEDIA STREAM');
         this.emit('stream', stream);
     }
 }

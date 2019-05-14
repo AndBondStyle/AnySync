@@ -2,7 +2,10 @@
   "name": "anysync",
   "private": true,
   "scripts": {
-    "build-extension": "parcel build extension/manifest.json -d extension/build"
+    "watch-extension": "parcel watch extension/manifest.json -d extension/build",
+    "build-extension": "parcel build extension/manifest.json -d extension/build",
+    "serve": "parcel webapp/index.html -d webapp/build --port 80",
+    "build": "parcel build webapp/index.html -d webapp/build"
   },
   "dependencies": {
     "@vue/component-compiler-utils": "^2.6.0",

@@ -81,7 +81,7 @@ Handles audio stream playback with latency correction
 
 * `constructor(stream)` &ndash; `stream` is source media stream from WebRTC
 * `set latency(value)` &ndash; adjusts playback delay to compensate provided latency
-* `get-set muted(bool)` &ndash; mutes || unmutes player
+* `get-set volume(value)` &ndash; gets || sets playback volume
 
 Events
 ------
@@ -95,6 +95,7 @@ Direction: leader &rarr; clients
     * `0` &ndash; disconnected
     * `1` &ndash; connected, not synced
     * `2` &ndash; connected, synced
+    * `3` &ndash; connected, sync failed
 * `latency` &ndash; audio output latency (s)
 
 ### `'record'`
@@ -110,7 +111,7 @@ Direction: clients &rarr; leader
 
 * `data` &ndash; one of following:
     * `arraybuffer` &ndash; feedback recorded successfully
-    * `null` &ndash; mic unavailable / something went wrong
+    * `null` &ndash; mic unavailable || something went wrong
     
 ### `'time'`
 

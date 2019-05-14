@@ -1,23 +1,28 @@
-import {AudioContext} from "standardized-audio-context";
+import {AudioContext} from 'standardized-audio-context';
 
 // INITIAL DELAY (S)
 const delay = 1.0;
 
 export default class Player {
-    constructor(stream) {
+    constructor() {
         this.context = new AudioContext();
-        this.source = this.context.createMediaStreamSource(stream);
+        this.source = null;
         this.delay = this.context.createDelay();
         this.gain = this.context.createGain();
         this.delay.delayTime.value = delay;
-        this.gain.gain.value = 1;
-        this.source.connect(this.delay);
         this.delay.connect(this.gain);
         this.gain.connect(this.context.destination);
     }
 
-    get muted() { return this.gain.gain.value === 0 }
-    set muted(x) { this.gain.gain.value = x ? 1 : 0 }
+    set stream(stream) {
+        // https://stackoverflow.com/questions/54761430/
+        new Audio().srcObject = stream;
+        this.source = this.context.createMediaStreamSource(stream);
+        this.source.connect(this.delay);
+    }
+
+    get volume() { return this.gain.gain.value }
+    set volume(x) { this.gain.gain.value = x }
 
     set latency(value) {
         let latency = Math.round(value * 1000);

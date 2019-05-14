@@ -1,6 +1,7 @@
 import 'babel-polyfill';
 import sleep from 'await-sleep';
 import Device from './device';
+import Syncer from './syncer';
 import Peer from '../common/peer';
 
 class Core {
@@ -12,9 +13,13 @@ class Core {
         this.devices = [];
         this.context = new AudioContext();
         this.gain = this.context.createGain();
+        this.syncer = new Syncer(this);
         this.target = null;
         this.stream = null;
         this.source = null;
+        this.time = () => performance.now() / 1000;
+        this.ctxtime = () => this.context.currentTime;
+        this.timemap = ts => this.ctxtime() + ts - this.time();
     }
 
     async init() {
@@ -56,7 +61,7 @@ class Core {
         if (request === 'release') this.release();
         if (request === 'status') {
             this.currtab().then(tab => response({
-                peer: this.peer.id,
+                peer: this.peer && this.peer.id,
                 count: this.devices.length,
                 current: tab && tab === this.target,
                 capturing: this.target !== null,
@@ -65,15 +70,31 @@ class Core {
         }
     }
 
+    update() {
+        let devices = [];
+        for (let device of this.devices) {
+            let {id, status, latency} = device;
+            devices.push({id, status, latency});
+        }
+        console.log('[MAIN] BROADCASTING DEVICES:', devices);
+        let conns = this.devices.filter(x => x.status).map(x => x.conn);
+        conns.map(x => x.send('devices', devices));
+    }
+
     async connection(conn) {
+        await conn.ready;
         console.log('[MAIN] DEVICE CONNECTED:', conn.id);
         let device = new Device(this, conn);
         this.devices.push(device);
         device.on('disconnected', () => {
             console.log('[MAIN] DEVICE DISCONNECTED:', device.id);
-            this.devices = this.devices.filter(x => x.id !== device.id);
-            this.peer.broadcast('devices', this.devices.map(x => x.json()));
+            let index = this.devices.findIndex(x => x.id === device.id);
+            this.devices.splice(index, 1);
+            this.syncer.update();
+            this.update();
         });
+        this.syncer.update();
+        this.update();
     }
 }
 
@@ -97,6 +118,6 @@ async function capturetab() {
 }
 
 // ENTRY POINT
-let core = new Core(currtab, capturetab);
+let core = window.core = new Core(currtab, capturetab);
 chrome.runtime.onInstalled.addListener(core.init.bind(core));
 chrome.runtime.onMessage.addListener(core.message.bind(core));
