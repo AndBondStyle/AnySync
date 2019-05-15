@@ -1,21 +1,30 @@
 import 'babel-polyfill';
 import copy2clipboard from 'clipboard-copy';
+import * as Sentry from '@sentry/browser';
 import Vue from 'vue/dist/vue.esm';
+import sleep from 'await-sleep';
 import Core from './core';
 
-new Vue({
+window.sentry = Sentry.init({
+    dsn: 'https://8684d9c305bb42d382df3e9a5b4fb648@sentry.io/273014',
+    integrations: [new Sentry.Integrations.Breadcrumbs()],
+});
+
+window.app = new Vue({
     el: '#app',
     data: {
         status: 'initial',
         party: null,
         index: null,
         devices: [],
+        syncing: false,
         copying: false,
     },
     mounted() {
         let query = window.location.search;
         if (query === '') history.replaceState(null, '', '?');
         else this.party = query.slice(1);
+        this.$el.style = '';
     },
     methods: {
         async connect() {
@@ -23,6 +32,7 @@ new Vue({
             this.core = window.core = new Core();
             this.core.on('update', this.update.bind(this));
             this.core.on('disconnected', () => this.status = 'disconnected');
+            this.core.on('sync', syncing => this.syncing = syncing);
             let ok = await this.core.connect(this.party);
             this.status = ok ? 'connected' : 'failed';
         },
@@ -35,10 +45,8 @@ new Vue({
         async copy() {
             this.copying = true;
             copy2clipboard(location.href);
-            setTimeout(() => this.copying = false, 1000);
-        },
-        async toggle() {
-            // TODO
+            await sleep(1000);
+            this.copying = false;
         },
     },
 });

@@ -43,7 +43,6 @@ class Connection extends EventEmitter {
 
         let event = raw.event;
         let data = raw.data;
-        if (event !== 'ping') console.warn('[CONN] EVENT:', event, 'DATA:', data);
         if (event === 'ping') this.last = now();
         else if (data == null) this.emit(event);
         else this.emit(event, data);

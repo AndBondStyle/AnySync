@@ -12,7 +12,7 @@ const beeplen = 50 / 1000;
 // DISTANCE BETWEEN BEEPS (S)
 const beepstep = 100 / 1000;
 // MARGINS BEFORE AND AFTER RECORDING (S)
-const margins = [500 / 1000, 3000 / 1000];
+const margins = [500 / 1000, 2000 / 1000];
 // AUDIO CONTEXT SAMPLE RATE
 const samplerate = 48000;
 // FFT WINDOW SIZE (SAMPLES)
@@ -57,7 +57,6 @@ export default class Syncer {
 
     schedule(synced, connected) {
         console.log('[SYNC] SCHEDULING SYNC ROUTINE');
-        console.warn('SCHEDULE NOW:', this.time());
         // TODO: MORE FLEXIBLE LOGIC
         this.recorders = synced;
         this.beepers = synced.concat(connected);
@@ -76,6 +75,7 @@ export default class Syncer {
         }
         this.end = time + margins[1];
         this.configs.map(x => x.end = this.end);
+        this.expected = this.expected.map(x => x - this.expected[0]);
         this.beepers.map((x, i) => x.schedule(this.configs[i]));
         let recconfig = {start: this.start, end: this.end, beep: false, record: true};
         this.recorders.map(x => x.schedule(recconfig));
@@ -86,37 +86,37 @@ export default class Syncer {
     }
 
     async perform() {
-        console.warn('PERFORM NOW:', this.time());
         this.syncing = true;
         console.log('[SYNC] PERFORMING SYNC...');
         let delta = this.start - delay - this.time();
         await sleep(delta * 1000);
-        console.log('[SYNC] SYNC START');
+        console.debug('[SYNC] SYNC START:', this.start, 'VS', this.time());
         this.gain.gain.value = 0;
         this.recorders.map(x => x.on('feedback', this.feedback.bind(this)));
         delta = this.end - this.time();
         await sleep(delta * 1000);
-        console.log('[SYNC] SYNC END');
+        console.debug('[SYNC] SYNC END:', this.end, 'VS', this.time());
         this.gain.gain.value = 1;
         await sleep(wait * 1000);
         this.recorders.map(x => x.removeAllListeners('feedback'));
         this.process();
-        console.log('[SYNC] APPLYING CHANGES...');
+        console.debug('[SYNC] APPLYING CHANGES...');
         for (let i = 0; i < this.beepers.length; i++) {
             if (this.latencies[i] === null) {
                 this.beepers[i].status = 3;
+                this.beepers[i].gain.gain.value = 0;
             } else {
                 this.beepers[i].status = 2;
                 this.beepers[i].gain.gain.value = 1;
                 this.beepers[i].latency += this.latencies[i];
             }
         }
-        console.log('[SYNC] BALANCING...');
+        console.debug('[SYNC] BALANCING...');
         let devices = this.devices.filter(x => x.status === 2);
         let latencies = devices.map(x => x.latency);
-        let mean = latencies.reduce((a, b) => a + b) / latencies.length;
+        let mean = latencies.reduce((a, b) => a + b, 0) / latencies.length;
         devices.map(x => x.latency -= mean);
-        console.log('[SYNC] PUBLISHING...');
+        console.log('[SYNC] SYNC ROUTINE COMPLETE');
         this.publish();
         this.syncing = false;
     }
@@ -127,19 +127,15 @@ export default class Syncer {
         let buffer = await this.context.decodeAudioData(audio);
         let detector = new Detector(buffer.sampleRate);
         let signal = buffer.getChannelData(0);
-        // TODO: REMOVE
-        window.export = {
-            signal: signal,
-            samplerate: detector.samplerate,
-            beeplen: beeplen,
-            detfreqs: this.freqs,
-        };
         let beeps = detector.detect(signal, this.freqs);
         this.feedbacks.push(beeps);
     }
 
     process() {
-        console.log('[SYNC] PROCESSING RESULTS...');
+        console.debug('[SYNC] PROCESSING RESULTS...');
+        console.debug('[SYNC] TOTAL FEEDBACKS:', this.feedbacks.length);
+        console.debug('[SYNC] EXPECTED:', this.recorders.length);
+
         let count = this.expected.length;
         let average = this.expected.map((_, i) => i === 0 ? [0] : []);
         for (let result of this.feedbacks) {

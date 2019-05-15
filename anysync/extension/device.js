@@ -49,6 +49,7 @@ export default class Device extends EventEmitter {
 
     schedule(config) {
         console.debug('[DEVICE] SCHEDULING SYNC:', this.id, config);
+        this.conn.send('sync', {start: config.start, end: config.end});
         this.gain.gain.setValueAtTime(0, this.timemap(config.start));
         this.gain.gain.setValueAtTime(1, this.timemap(config.end));
         if (config.record) {

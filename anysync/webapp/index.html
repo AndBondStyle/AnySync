@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../common/style.scss">
 </head>
 <body>
-<div id="app" class="flex-col text-center">
+<div id="app" class="flex-col text-center" style="display: none;">
     <p class="text-big">==== ANYSYNC SPEAKER ====</p>
     <div v-if="!party" class="flex-col">
         <div class="btn fake danger">PARTY ID NOT FOUND</div>
@@ -23,7 +23,8 @@
         <div v-if="status === 'failed'" class="btn fake danger">FAILED TO CONNECT</div>
         <div v-if="status === 'disconnected'" class="btn fake danger">DISCONNECTED</div>
         <div v-if="status === 'connected'" class="flex-col">
-            <div class="btn fake active">CONNECTED DEVICES: {{ devices.length }}</div>
+            <div v-if="!syncing" class="btn fake active">CONNECTED DEVICES: {{ devices.length }}</div>
+            <div v-else class="btn fake danger">SYNCING...</div>
             <div class="flex-col">
                 <div class="flex-row" v-for="(device, index) in devices">
                     <div class="btn fake">#{{ index }}</div>

@@ -85,6 +85,7 @@ class Core {
         await conn.ready;
         console.log('[MAIN] DEVICE CONNECTED:', conn.id);
         let device = new Device(this, conn);
+        await sleep(100); // JUST IN CASE
         this.devices.push(device);
         device.on('disconnected', () => {
             console.log('[MAIN] DEVICE DISCONNECTED:', device.id);

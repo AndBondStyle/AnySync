@@ -7,7 +7,7 @@ export default class Player {
     constructor() {
         this.context = new AudioContext();
         this.source = null;
-        this.delay = this.context.createDelay();
+        this.delay = this.context.createDelay(3);
         this.gain = this.context.createGain();
         this.delay.delayTime.value = delay;
         this.delay.connect(this.gain);

@@ -2,6 +2,7 @@ import {EventEmitter} from 'events';
 import now from 'performance-now';
 import Peer from '../common/peer';
 import Recorder from './recorder';
+import sleep from 'await-sleep';
 import Player from './player';
 
 export default class Core extends EventEmitter {
@@ -40,6 +41,7 @@ export default class Core extends EventEmitter {
         this.conn.on('time', time => this.timediff = time - now() / 1000);
         this.conn.on('devices', this.update.bind(this));
         this.conn.on('record', this.record.bind(this));
+        this.conn.on('sync', this.sync.bind(this));
         this.conn.on('close', () => this.emit('disconnected'));
         console.log('[MAIN] WAITING FOR STREAM...');
         let resolve = null;
@@ -61,10 +63,17 @@ export default class Core extends EventEmitter {
 
     async record(data) {
         console.log('[MAIN] RECORDING...');
-        console.warn('NOW:', this.time());
-        console.warn('DATA:', data);
         let audio = await this.recorder.record(data.start, data.end);
         console.log('[MAIN] DONE RECORDING:', audio);
         this.conn.send('feedback', audio);
+    }
+
+    async sync(config) {
+        await sleep((config.start - this.time()) * 1000);
+        console.log('[MAIN] SYNC IN PROGRESS...');
+        this.emit('sync', true);
+        await sleep((config.end - this.time()) * 1000);
+        console.log('[MAIN] SYNC ROUTINE COMPLETE...');
+        this.emit('sync', false);
     }
 }
