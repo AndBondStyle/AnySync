@@ -26,8 +26,8 @@ export default class Recorder {
             let reader = new FileReader();
             let promise = new Promise(r => reader.onloadend = r);
             reader.readAsArrayBuffer(e.data);
-            let data = await promise;
-            resolve(data);
+            await promise;
+            resolve(reader.result);
         };
 
         setTimeout(() => recorder.start(), (start - this.time()) * 1000);

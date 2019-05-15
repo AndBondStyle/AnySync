@@ -8,12 +8,14 @@ const winsize = 1024;
 const winstep = 32;
 // MIN DETECTION VOLUME (DB)
 const minvolume = -10;
+// ACCURACY RATIO
+const accratio = 0.8;
 
 export default class Detector {
     constructor(samplerate) {
         this.samplerate = samplerate;
         this.peaksize = beeplen * this.samplerate / winstep;
-        this.accuracy = this.peaksize / 2;
+        this.accuracy = this.peaksize * accratio;
         this.kernel = this.makeKernel();
     }
 
@@ -48,7 +50,7 @@ export default class Detector {
                 let [index, mixratio] = items[j];
                 let left = Math.log10(spectrum.power[index]) * (1 - mixratio);
                 let right = Math.log10(spectrum.power[index + 1]) * mixratio;
-                volumes[i].push(left + right);
+                volumes[j].push(left + right);
             }
         }
 
@@ -60,6 +62,7 @@ export default class Detector {
             console.debug('[DETECT] ANALYZE FREQ:', freqs[i]);
             console.debug('[DETECT] THRESHOLD:', threshold);
             console.debug('[DETECT] EXTRACTED BEEP:', beep);
+            beeps.push(beep);
         }
         console.debug('[DETECT] FINAL RESULT:', beeps);
         return beeps;
