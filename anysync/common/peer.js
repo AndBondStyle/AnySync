@@ -3,7 +3,7 @@ import now from 'performance-now';
 import RawPeer from 'peerjs';
 
 // PING TIMEOUT (S)
-const timeout = 10.0;
+const timeout = 100.0;
 
 class Connection extends EventEmitter {
     constructor(conn) {
