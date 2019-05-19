@@ -24,6 +24,9 @@ export default class Device extends EventEmitter {
         this.source.connect(this.gain);
         this.gain.connect(this.destination);
         this.conn.ready.then(this.init.bind(this));
+        this.update = () => {
+            this.gain.gain.value = this.status === consts.status.synced ? 1 : 0;
+        };
     }
 
     async init() {

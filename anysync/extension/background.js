@@ -87,6 +87,7 @@ class Core {
         let device = new Device(this, conn);
         await sleep(100); // JUST IN CASE
         this.devices.push(device);
+        if (this.devices.length === 1) this.syncer.update();
         this.update();
         device.on('sync', () => {
             console.debug('[MAIN] SYNC REQUEST:', conn.id);
@@ -98,6 +99,7 @@ class Core {
             let target = this.devices.find(x => x.id === data.id);
             if (target == null) return;
             target.status = data.status;
+            target.update();
             this.update();
         });
         device.on('disconnected', () => {

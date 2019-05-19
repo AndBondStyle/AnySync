@@ -5,16 +5,16 @@ export default class Recorder {
         this.time = time;
         this.config = {noiseSuppression: false, echoCancellation: false};
         try { getUserMedia({audio: this.config}).then(s => s.getAudioTracks().map(x => x.stop())); }
-        catch (err) { console.warn('[R] INITIAL MIC REQUEST FAILED:', err) }
+        catch (err) { console.warn('[REC] INITIAL MIC REQUEST FAILED:', err) }
     }
 
     async record(start, end) {
         let stream = null;
         try {
-            console.debug('[R] REQUESTING MIC...');
+            console.debug('[REC] REQUESTING MIC...');
             stream = await getUserMedia({audio: this.config});
         } catch (err) {
-            console.warn('[R] FAILED TO ACQUIRE MIC:', err);
+            console.warn('[REC] FAILED TO ACQUIRE MIC:', err);
             return null;
         }
 
@@ -22,7 +22,7 @@ export default class Recorder {
         let resolve = null;
         let promise = new Promise(r => resolve = r);
         recorder.ondataavailable = async e => {
-            console.debug('[R] RECORDING FINISHED');
+            console.debug('[REC] RECORDING FINISHED');
             let reader = new FileReader();
             let promise = new Promise(r => reader.onloadend = r);
             reader.readAsArrayBuffer(e.data);

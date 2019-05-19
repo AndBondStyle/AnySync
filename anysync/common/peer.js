@@ -11,6 +11,7 @@ class Connection extends EventEmitter {
         this.last = null;
         this.ready = new Promise(r => this.resolve = r);
         this.send = (event, data) => this.conn.send({event, data});
+        this.close = () => this.conn.close();
         Object.defineProperty(this, 'open', {get: () => this.conn.open});
 
         this.conn.once('open', () => this.resolve(this.id = conn.peer));

@@ -23,10 +23,10 @@ export default class Syncer {
 
     update() {
         if (this.syncing) return;
-        let devices = this.devices.filter(x => x.status);
+        let devices = this.devices.filter(x => x.status !== consts.status.disconnected);
         if (devices.length === 1) {
             console.log('[SYNC] ENABLING FIRST DEVICE:', devices[0].id);
-            devices[0].status = 2;
+            devices[0].status = consts.status.synced;
             devices[0].gain.gain.value = 1;
         } else if (devices.length) {
             let synced = devices.filter(x => x.status === consts.status.synced);
@@ -45,9 +45,10 @@ export default class Syncer {
 
     schedule(recorders, beepers) {
         console.log('[SYNC] SCHEDULING SYNC ROUTINE');
-        // TODO: MORE FLEXIBLE LOGIC
         this.recorders = recorders;
-        this.beepers = recorders.concat(beepers);
+        this.beepers = beepers;
+        console.debug('[SYNC] RECORDERS:', this.recorders);
+        console.debug('[SYNC] BEEPERS:', this.beepers);
         this.start = this.time() + consts.warmup;
         this.freqs = consts.detfreqs.slice(0, this.beepers.length);
         let time = this.start + consts.margins[0];
@@ -152,12 +153,12 @@ export default class Syncer {
 
         for (let i = 0; i < this.beepers.length; i++) {
             if (this.latencies[i] === null) {
-                this.beepers[i].status = 3;
-                this.beepers[i].gain.gain.value = 0;
+                this.beepers[i].status = consts.status.error;
+                this.beepers[i].update();
             } else {
-                this.beepers[i].status = 2;
-                this.beepers[i].gain.gain.value = 1;
+                this.beepers[i].status = consts.status.synced;
                 this.beepers[i].latency += this.latencies[i];
+                this.beepers[i].update();
             }
         }
 
