@@ -1,5 +1,7 @@
-// TODO
-=======
+AnySync &ndash; Distributed Audio System
+========================================
+
+#### LIVE: https://anysync.herokuapp.com/
 
 Constants
 ---------

@@ -5,7 +5,8 @@
     "watch-extension": "parcel watch extension/manifest.json -d extension/build --no-hmr",
     "build-extension": "parcel build extension/manifest.json -d extension/build",
     "serve": "parcel webapp/index.html -d webapp/build --port 80",
-    "build": "parcel build webapp/index.html -d webapp/build"
+    "build": "parcel build webapp/index.html -d webapp/build",
+    "start": "http-server webapp/build -p $PORT"
   },
   "dependencies": {
     "@sentry/browser": "^5.2.1",
