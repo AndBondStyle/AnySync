@@ -27,7 +27,7 @@ export default class Syncer {
         if (devices.length === 1) {
             console.log('[SYNC] ENABLING FIRST DEVICE:', devices[0].id);
             devices[0].status = consts.status.synced;
-            devices[0].gain.gain.value = 1;
+            devices[0].update();
         } else if (devices.length) {
             let synced = devices.filter(x => x.status === consts.status.synced);
             let unsynced = devices.filter(x =>
@@ -39,7 +39,7 @@ export default class Syncer {
             unsynced = unsynced.slice(0, half);
             let beepers = synced.concat(unsynced).slice(-consts.detfreqs.length);
             this.schedule(synced, beepers);
-            this.perform().then(this.update.bind(this));
+            this.perform();
         }
     }
 
