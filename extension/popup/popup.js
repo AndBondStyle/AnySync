@@ -28,7 +28,7 @@ function copy(text) {
 
 function update(newstatus) {
     status = newstatus;
-    if (!copying) peerButton.innerText = 'PEER ID: ' + status.peer;
+    if (!copying) peerButton.innerText = 'PARTY ID: ' + status.peer;
     if (status.capturing && status.current) {
         mainButton.innerText = 'RELEASE TAB';
         mainButton.classList.add('active');
