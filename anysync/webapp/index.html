@@ -23,13 +23,18 @@
         <div v-if="status === 'failed'" class="btn fake danger">FAILED TO CONNECT</div>
         <div v-if="status === 'disconnected'" class="btn fake danger">DISCONNECTED</div>
         <div v-if="status === 'connected'" class="flex-col">
+            <div class="flex-row">
+                <div class="btn flex-fill" @click="sync">SYNC</div>
+                <div class="btn flex-fill" :class="{danger: muted}" @click="toggle">{{ muted ? 'UN' : '' }}MUTE</div>
+            </div>
             <div v-if="!syncing" class="btn fake active">CONNECTED DEVICES: {{ devices.length }}</div>
             <div v-else class="btn fake danger">SYNCING...</div>
             <div class="flex-col">
                 <div class="flex-row" v-for="(device, index) in devices">
                     <div class="btn fake">#{{ index }}</div>
                     <div class="btn fake flex-fill">{{ Math.round(device.latency * 1000) }} ms</div>
-                    <div class="btn fake" :class="{active: device.status === 2, danger: device.status === 3}">
+                    <div class="btn" @click="toggleStatus(device.id)"
+                         :class="{active: device.status === 2, danger: device.status === 3}">
                         {{ ['OFF', 'NEW', 'OK!', 'ERR'][device.status] }}
                     </div>
                 </div>

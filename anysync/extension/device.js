@@ -1,8 +1,6 @@
+import * as consts from '../common/consts';
 import {EventEmitter} from 'events';
 import sleep from 'await-sleep';
-
-// BEEP DURATION (S)
-const beeplen = 50 / 1000;
 
 export default class Device extends EventEmitter {
     constructor(parent, conn) {
@@ -31,6 +29,8 @@ export default class Device extends EventEmitter {
     async init() {
         this.conn.on('close', this.disconnected.bind(this));
         this.conn.on('feedback', data => this.emit('feedback', data));
+        this.conn.on('status', data => this.emit('status', data));
+        this.conn.on('sync', () => this.emit('sync'));
         console.debug('[DEVICE] HANDSHAKING');
         this.conn.send('time', this.time());
         this.mediaconn = this.peer.call(this.id, this.stream);
@@ -63,7 +63,7 @@ export default class Device extends EventEmitter {
             this.oscillator.connect(this.destination);
             this.oscillator.frequency.value = config.beepfreq;
             this.oscillator.start(this.timemap(config.beeptime));
-            this.oscillator.stop(this.timemap(config.beeptime) + beeplen);
+            this.oscillator.stop(this.timemap(config.beeptime) + consts.beeplen);
         }
     }
 }

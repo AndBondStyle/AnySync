@@ -1,9 +1,7 @@
+import * as consts from './consts';
 import {EventEmitter} from 'events';
 import now from 'performance-now';
 import RawPeer from 'peerjs';
-
-// PING TIMEOUT (S)
-const timeout = 100.0;
 
 class Connection extends EventEmitter {
     constructor(conn) {
@@ -24,7 +22,7 @@ class Connection extends EventEmitter {
 
     async poll() {
         if (this.last === null) this.last = now();
-        if (now() - this.last > timeout * 1000) {
+        if (now() - this.last > consts.timeout * 1000) {
             console.debug('[CONN] PING TIMEOUT EXCEEDED');
             this.conn.close();
             this.emit('close');

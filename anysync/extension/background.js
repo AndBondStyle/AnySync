@@ -39,7 +39,7 @@ class Core {
     async capture() {
         let tab = await this.currtab();
         if (tab === null) return;
-        if (this.target !== null) this.release();
+        this.release();
 
         console.log('[MAIN] CAPTURING TAB');
         this.target = tab;
@@ -87,15 +87,25 @@ class Core {
         let device = new Device(this, conn);
         await sleep(100); // JUST IN CASE
         this.devices.push(device);
+        this.update();
+        device.on('sync', () => {
+            console.debug('[MAIN] SYNC REQUEST:', conn.id);
+            this.syncer.update();
+            this.update();
+        });
+        device.on('status', data => {
+            console.debug('[MAIN] STATE CHANGE REQUEST:', conn.id, data);
+            let target = this.devices.find(x => x.id === data.id);
+            if (target == null) return;
+            target.status = data.status;
+            this.update();
+        });
         device.on('disconnected', () => {
             console.log('[MAIN] DEVICE DISCONNECTED:', device.id);
             let index = this.devices.findIndex(x => x.id === device.id);
             this.devices.splice(index, 1);
-            this.syncer.update();
             this.update();
         });
-        this.syncer.update();
-        this.update();
     }
 }
 

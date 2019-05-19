@@ -1,15 +1,13 @@
 import {AudioContext} from 'standardized-audio-context';
-
-// INITIAL DELAY (S)
-const delay = 1.0;
+import * as consts from '../common/consts';
 
 export default class Player {
     constructor() {
         this.context = new AudioContext();
         this.source = null;
-        this.delay = this.context.createDelay(3);
+        this.delay = this.context.createDelay(consts.delay * 2);
         this.gain = this.context.createGain();
-        this.delay.delayTime.value = delay;
+        this.delay.delayTime.value = consts.delay;
         this.delay.connect(this.gain);
         this.gain.connect(this.context.destination);
     }
@@ -21,12 +19,16 @@ export default class Player {
         this.source.connect(this.delay);
     }
 
-    get volume() { return this.gain.gain.value }
-    set volume(x) { this.gain.gain.value = x }
-
     set latency(value) {
         let latency = Math.round(value * 1000);
         console.debug('[PLAY] UPDATING LATENCY:', latency, 'MS');
-        this.delay.delayTime.value = delay - value;
+        this.delay.delayTime.value = consts.delay - value;
+    }
+
+    toggle() {
+        let volume = this.gain.gain.value;
+        volume = volume > 0 ? 0 : 1;
+        this.gain.gain.value = volume;
+        return volume;
     }
 }

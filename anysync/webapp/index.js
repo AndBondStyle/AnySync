@@ -17,8 +17,11 @@ window.app = new Vue({
         party: null,
         index: null,
         devices: [],
+        muted: false,
         syncing: false,
         copying: false,
+        sync: null,
+        toggle: null,
     },
     mounted() {
         let query = window.location.search;
@@ -35,6 +38,8 @@ window.app = new Vue({
             this.core.on('sync', syncing => this.syncing = syncing);
             let ok = await this.core.connect(this.party);
             this.status = ok ? 'connected' : 'failed';
+            this.sync = () => this.core.conn.send('sync');
+            this.toggle = () => this.muted = !this.core.player.toggle();
         },
         async update() {
             this.devices = this.core.devices;
@@ -47,6 +52,12 @@ window.app = new Vue({
             copy2clipboard(location.href);
             await sleep(1000);
             this.copying = false;
+        },
+        async toggleStatus(id) {
+            let device = this.devices.find(x => x.id === id);
+            if (device == null) return;
+            let status = device.status === 2 ? 1 : 2;
+            this.core.conn.send('status', {id: id, status: status});
         },
     },
 });

@@ -1,24 +1,6 @@
+import * as consts from '../common/consts';
 import Detector from './detector';
 import sleep from 'await-sleep';
-
-// INITIAL DELAY (S)
-const delay = 1.0;
-// WARMUP TIME (S)
-const warmup = 2.0;
-// FEEDBACK WAIT TIME (S)
-const wait = 2.0;
-// BEEP DURATION (S)
-const beeplen = 50 / 1000;
-// DISTANCE BETWEEN BEEPS (S)
-const beepstep = 100 / 1000;
-// MARGINS BEFORE AND AFTER RECORDING (S)
-const margins = [500 / 1000, 2000 / 1000];
-// AUDIO CONTEXT SAMPLE RATE
-const samplerate = 48000;
-// FFT WINDOW SIZE (SAMPLES)
-const winsize = 1024;
-// FREQUENCIES TO BEEP & DETECT
-const detfreqs = [24, 28, 32, 36, 40, 44, 48].map(x => x * samplerate / winsize);
 
 export default class Syncer {
     constructor(parent) {
@@ -47,22 +29,28 @@ export default class Syncer {
             devices[0].status = 2;
             devices[0].gain.gain.value = 1;
         } else if (devices.length) {
-            let synced = devices.filter(x => x.status === 2);
-            let connected = devices.filter(x => x.status !== 2);
-            if (!connected.length) return;
-            this.schedule(synced, connected);
+            let synced = devices.filter(x => x.status === consts.status.synced);
+            let unsynced = devices.filter(x =>
+                x.status === consts.status.connected ||
+                x.status === consts.status.error
+            );
+            if (!unsynced.length) return;
+            let half = Math.floor(consts.detfreqs.length / 2);
+            unsynced = unsynced.slice(0, half);
+            let beepers = synced.concat(unsynced).slice(-consts.detfreqs.length);
+            this.schedule(synced, beepers);
             this.perform().then(this.update.bind(this));
         }
     }
 
-    schedule(synced, connected) {
+    schedule(recorders, beepers) {
         console.log('[SYNC] SCHEDULING SYNC ROUTINE');
         // TODO: MORE FLEXIBLE LOGIC
-        this.recorders = synced;
-        this.beepers = synced.concat(connected);
-        this.start = this.time() + warmup;
-        this.freqs = detfreqs.slice(0, this.beepers.length);
-        let time = this.start + margins[0];
+        this.recorders = recorders;
+        this.beepers = recorders.concat(beepers);
+        this.start = this.time() + consts.warmup;
+        this.freqs = consts.detfreqs.slice(0, this.beepers.length);
+        let time = this.start + consts.margins[0];
         let baseconfig = {start: this.start, beep: true, record: false};
         this.configs = [];
         this.expected = [];
@@ -71,9 +59,9 @@ export default class Syncer {
             let config = {beeptime: time, beepfreq: this.freqs[i]};
             this.configs.push(Object.assign(config, baseconfig));
             this.expected.push(time);
-            time += beepstep;
+            time += consts.beepstep;
         }
-        this.end = time + margins[1];
+        this.end = time + consts.margins[1];
         this.configs.map(x => x.end = this.end);
         this.expected = this.expected.map(x => x - this.expected[0]);
         this.beepers.map((x, i) => x.schedule(this.configs[i]));
@@ -88,7 +76,7 @@ export default class Syncer {
     async perform() {
         this.syncing = true;
         console.log('[SYNC] PERFORMING SYNC...');
-        let delta = this.start - delay - this.time();
+        let delta = this.start - consts.delay - this.time();
         await sleep(delta * 1000);
         console.debug('[SYNC] SYNC START:', this.start, 'VS', this.time());
         this.gain.gain.value = 0;
@@ -97,25 +85,9 @@ export default class Syncer {
         await sleep(delta * 1000);
         console.debug('[SYNC] SYNC END:', this.end, 'VS', this.time());
         this.gain.gain.value = 1;
-        await sleep(wait * 1000);
+        await sleep(consts.wait * 1000);
         this.recorders.map(x => x.removeAllListeners('feedback'));
         this.process();
-        console.debug('[SYNC] APPLYING CHANGES...');
-        for (let i = 0; i < this.beepers.length; i++) {
-            if (this.latencies[i] === null) {
-                this.beepers[i].status = 3;
-                this.beepers[i].gain.gain.value = 0;
-            } else {
-                this.beepers[i].status = 2;
-                this.beepers[i].gain.gain.value = 1;
-                this.beepers[i].latency += this.latencies[i];
-            }
-        }
-        console.debug('[SYNC] BALANCING...');
-        let devices = this.devices.filter(x => x.status === 2);
-        let latencies = devices.map(x => x.latency);
-        let mean = latencies.reduce((a, b) => a + b, 0) / latencies.length;
-        devices.map(x => x.latency -= mean);
         console.log('[SYNC] SYNC ROUTINE COMPLETE');
         this.publish();
         this.syncing = false;
@@ -177,5 +149,21 @@ export default class Syncer {
         console.debug('[SYNC] EXPECTED RESULT:', this.expected);
         console.debug('[SYNC] COMPUTED LATENCIES:', this.latencies);
         console.debug('[SYNC] VALID LATENCIES:', valid);
+
+        for (let i = 0; i < this.beepers.length; i++) {
+            if (this.latencies[i] === null) {
+                this.beepers[i].status = 3;
+                this.beepers[i].gain.gain.value = 0;
+            } else {
+                this.beepers[i].status = 2;
+                this.beepers[i].gain.gain.value = 1;
+                this.beepers[i].latency += this.latencies[i];
+            }
+        }
+
+        let devices = this.devices.filter(x => x.status === consts.status.synced);
+        let latencies = devices.map(x => x.latency);
+        let mean = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+        devices.map(x => x.latency -= mean);
     }
 }
