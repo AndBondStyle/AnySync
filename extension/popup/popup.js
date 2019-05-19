@@ -1,6 +1,6 @@
 import copy2clipboard from 'clipboard-copy';
 
-const url = 'https://anysync.herokuapp.com/anysync/webapp/index.html?';
+const url = 'https://anysync.herokuapp.com/?';
 
 let peerButton = null;   // PEER ID BUTTON
 let statusButton = null; // STATUS BUTTON
