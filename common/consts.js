@@ -21,7 +21,7 @@ export const detfreqs = [24, 28, 32, 36, 40, 44, 48].map(x => x * samplerate / w
 // MIN DETECTION VOLUME (DB)
 export const minvolume = -10;
 // ACCURACY RATIO
-export const accratio = 0.8;
+export const accratio = 0.6;
 // PING TIMEOUT (S)
 export const timeout = 3.0;
 // DEVICE STATUS
